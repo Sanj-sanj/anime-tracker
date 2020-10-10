@@ -1,10 +1,10 @@
+const timer = countingFunc()
 const siteStorage = localStorage
 const user = siteStorage.getItem('user')    
-let insertPoint = document.querySelector('.row-card-area')
-const btns = document.querySelectorAll('[data-position]').forEach(btn => btn.addEventListener('click', changeSeason))
+const insertPoint = document.querySelector('.row-card-area')
+const btns = document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
 const formats = document.querySelectorAll('.f-choice a').forEach(link => link.addEventListener('click', changeFormat))
 let showCountdown
-const timer = countingFunc()
 
 function validateUser() {
     if(user) {
@@ -19,23 +19,20 @@ function validateUser() {
 validateUser()
 
 function changeFormat(e) {
+    const activeLink = document.querySelector('.f-choice.active').classList.remove('active')
     const currSeason = document.querySelector('.anime-season-header').textContent.split(' ').join('-').toLocaleUpperCase()
     const format = e.target.dataset.format
-    //PITA way of going through the DOM tree maybe theres a better way...
-    e.path.forEach(el => console.log(el.nodeName == "UL" ? Array.from(el.childNodes).forEach(el => el.classList = 'f-choice') : false ))
     this.parentNode.classList.add('active')
     timer.resetTimer()
     setTimeout(loadInfo(currSeason, format), 20)
 }
 
-// put in one func and use closure to save session current season so they can change tv or movie or ova?
 function changeSeason(e){
-    let format
-    let formats = document.querySelectorAll('.f-choice')
-        formats.forEach(el => el.className.includes('active') ? format = el.childNodes[1].dataset.format : false)
+    e.preventDefault()
     const currSeason = document.querySelector('.anime-season-header').textContent.split(' ')
-    const change = e.path.find(val => val.nodeName == 'BUTTON').dataset.position
-    let season = checkSeason(...currSeason, change)
+    const format = document.querySelector('.f-choice.active').children[0].dataset.format
+    const change = this.dataset.position
+    const season = checkSeason(...currSeason, change)
     timer.resetTimer()
     setTimeout(loadInfo(season, format), 20)
 }
@@ -47,12 +44,6 @@ function loadInfo(changeSeason, format) {
     const seasonHeader = document.querySelector('.anime-season-header')
     const season = changeSeason || checkSeason()
     seasonHeader.textContent = `${season.charAt(0) + season.slice(1).replace('-', ' ').toLocaleLowerCase()}`
-    console.log(season, format)
-                                            //need to re-write this checkCache function check fCall for details
-    // if(!checkCache(season)){
-    //     console.log('loading from API')
-    // }
-
     insertPoint.textContent = ''
     gatherAPI(season, format)
 }
@@ -73,7 +64,6 @@ function gatherAPI(season, format) {
         return values
 }
 function loopInnerItems(arr) {
-    // console.log(arr)
     arr.media.forEach(element => {
         let information = {
             title: element.title,
@@ -89,7 +79,6 @@ function loopInnerItems(arr) {
             coverImage: element.coverImage,
             officialSite: element.externalLinks.find(link => link.site =='Official Site') || '#'
         }
-        // console.log(information.genres)
         buildCard(information)  
     });
     saveHistory()
