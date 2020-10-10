@@ -12,14 +12,32 @@ server.get('/', (req, res) =>{
 })
 
 
-var variables = {
-    format: 'TV',
-    season: "FALL",
-    seasonYear: "2020",
 
-};
 
-server.get('/info',async (req, res) => {
+server.get( '/main/:season/:format?' ,async (req, res) => {
+    var variables = {
+        // id: 116697,
+        isAdult: false,
+        page: 1,
+        perPage: 50,
+        format_in: ['TV', 'TV_SHORT'], //defaults to TV series
+        season: "",
+        seasonYear: ""
+    
+    };
+    module.exports = {variables}
+
+    let {season, format} = req.params
+    console.log(season, format)
+
+    season = season.split('-')
+    variables.season = season[0].toUpperCase()
+    variables.seasonYear = season[1]
+    format !== undefined ? format == 'TV' ? format = ['TV', 'TV_SHORT'] : format == ['OVA'] ? format = ['OVA', 'ONA'] : format = format.split('-') : format = variables.format_in //this be changed 
+    
+    variables.format_in = format.map(form => form.toUpperCase())
+    console.log(season, format, variables)
+
     let info
     async function request() {
         await graphQL.getInfo(thisQuery.queryMain)
@@ -29,10 +47,25 @@ server.get('/info',async (req, res) => {
             })
     }
     await request()
+    console.log(info.pageInfo)
     return info
 })
 
-server.get('/timers', async(req, res) => {
+// server.get('/info',async (req, res) => {
+//     let info
+//     async function request() {
+//         await graphQL.getInfo(thisQuery.queryMain)
+//             .then(data => {
+//                 res.status(200).json(data)
+//                 return info = data
+//             })
+//     }
+//     await request()
+//     console.log(info.pageInfo)
+//     return info
+// })
+
+server.get('/timers/:season/', async(req, res) => {
     let times
     async function requestTime() {
         await graphQL.getInfo(thisQuery.queryTimes)
@@ -50,5 +83,3 @@ server.use(express.static(__dirname + '/public' ))
 server.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`)
 })
-
-module.exports = {variables}

@@ -1,6 +1,9 @@
 const siteStorage = localStorage
 const user = siteStorage.getItem('user')    
 let insertPoint = document.querySelector('.row-card-area')
+const btns = document.querySelectorAll('[data-position]').forEach(btn => btn.addEventListener('click', changeSeason))
+const formats = document.querySelectorAll('.f-choice a').forEach(link => link.addEventListener('click', changeFormat))
+let showCountdown
 const timer = countingFunc()
 
 function validateUser() {
@@ -15,55 +18,115 @@ function validateUser() {
 }
 validateUser()
 
-function loadInfo() {
-    const newShows = document.querySelector('.anime-avail-bar')
-    newShows.textContent = `Welcome ${user}!`
-    const season = checkSeason()
-    console.log(season)
-    if(!checkCache(season)){
-        console.log('loading from API')
-        return gatherAPI()
-    }
-    return console.log('loading from cache')
+function changeFormat(e) {
+    const currSeason = document.querySelector('.anime-season-header').textContent.split(' ').join('-').toLocaleUpperCase()
+    const format = e.target.dataset.format
+    //PITA way of going through the DOM tree maybe theres a better way...
+    e.path.forEach(el => console.log(el.nodeName == "UL" ? Array.from(el.childNodes).forEach(el => el.classList = 'f-choice') : false ))
+    this.parentNode.classList.add('active')
+    timer.resetTimer()
+    setTimeout(loadInfo(currSeason, format), 20)
 }
 
-function gatherAPI() {
+// put in one func and use closure to save session current season so they can change tv or movie or ova?
+function changeSeason(e){
+    let format
+    let formats = document.querySelectorAll('.f-choice')
+        formats.forEach(el => el.className.includes('active') ? format = el.childNodes[1].dataset.format : false)
+    const currSeason = document.querySelector('.anime-season-header').textContent.split(' ')
+    const change = e.path.find(val => val.nodeName == 'BUTTON').dataset.position
+    let season = checkSeason(...currSeason, change)
+    timer.resetTimer()
+    setTimeout(loadInfo(season, format), 20)
+}
+
+function loadInfo(changeSeason, format) {
+    //put this on the top navbar area
+    // const newShows = document.querySelector('.anime-avail-bar')
+    // newShows.textContent = `Welcome ${user}!`
+    const seasonHeader = document.querySelector('.anime-season-header')
+    const season = changeSeason || checkSeason()
+    seasonHeader.textContent = `${season.charAt(0) + season.slice(1).replace('-', ' ').toLocaleLowerCase()}`
+    console.log(season, format)
+                                            //need to re-write this checkCache function check fCall for details
+    // if(!checkCache(season)){
+    //     console.log('loading from API')
+    // }
+
+    insertPoint.textContent = ''
+    gatherAPI(season, format)
+}
+
+function gatherAPI(season, format) {
     console.log('calling api')
-    let res = fetch('/info')
+    let values 
+    let res = fetch(`/main/${season}/${format == null ? '' : format}`)
     .then(function(resp) {
         return resp.json()
     })
     Promise.resolve(res)
         .then(function (val){
+            vales = val
             loopInnerItems(val)
         })
+
+        return values
 }
 function loopInnerItems(arr) {
+    // console.log(arr)
     arr.media.forEach(element => {
         let information = {
             title: element.title,
+            format: element.format || 'N/A',
             genres: element.genres,
-            prodCompany: element.studios,
+            prodCompany: element.studios.nodes.find(studio => studio.isAnimationStudio) || 'N/A',
             nextEpisode: element.nextAiringEpisode,
-            source: element.source,
+            source: element.source || 'N/A',
+            status: element.status || 'N/A',
             episodes: element.episodes,
             duration: element.duration,
             description: element.description,
             coverImage: element.coverImage,
-            officialSite: element.externalLinks.find(link => link.site =='Official Site')
+            officialSite: element.externalLinks.find(link => link.site =='Official Site') || '#'
         }
+        // console.log(information.genres)
         buildCard(information)  
     });
     saveHistory()
 }
 
+function getDaysInAMonth (month, year) {
+    return new Date(year, month, 0).getDate()
+}
+function countDaysBetweenMonths(today, nextDate) {
+    const daysInBtwnARR = []
+    let nextEpMonth = nextDate.getMonth() 
+    daysInBtwnARR.push(today.getDate(), (getDaysInAMonth(today.getMonth() + 1, today.getFullYear())) - today.getDate())
+
+    for(nextEpMonth; nextEpMonth > today.getMonth(); nextEpMonth--) {
+        if(nextEpMonth - 1 > today.getMonth) {
+            daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
+        }
+    }
+    return days = daysInBtwnARR.reduce((acc, curr) => acc += curr)
+}
 function countingFunc() {
     let called = 0
     let stringCounter 
     let arr = []
+    let cdArr = []
     function countdown (nextEp) {
-        let counter = setInterval(() => {
-            if(nextEp == null) {
+        showCountdown = setInterval(() => {
+
+            if(nextEp == "FINISHED") {
+                arr.push('Finished')
+                if(arr.length == called) {
+                    displayTime(arr)
+                    arr= []
+                }
+                return
+            }
+            if(nextEp == null) { // DISPLAY RELEASED IF AIR DATE IS ALREADY PASSED
                 arr.push('No information')
                 if(arr.length == called) {
                     displayTime(arr)
@@ -72,13 +135,19 @@ function countingFunc() {
                 return 
             }
             const today = new Date()
-            const days = nextEp.getDate() - today.getDate()
+            const thisMonth = today.getMonth()
+            
+            let days = (nextEp.getDate() - today.getDate()) 
             const totalSeconds = Math.round((nextEp - Date.now()) / 1000)
             const totalMins = totalSeconds / 60
             const seconds = Math.round((nextEp - Date.now()) / 1000) % 60
             const mins =  Math.floor(totalMins) % 60
             const hours = Math.floor(totalMins / 60) % 24
 
+            if(nextEp.getMonth() > today.getMonth()) {
+                days = countDaysBetweenMonths(today, nextEp)
+            }
+            
             stringCounter = `${days}d ${hours}h ${mins < 10 ? '0' : ''}${mins}m ${seconds < 10 ? '0' : ''}${seconds}s`
             arr.push(stringCounter)
             if(arr.length == called) { //only call this once all values have filled the array to prevent flickering the time.
@@ -87,11 +156,23 @@ function countingFunc() {
                 return
             }
         }, 1000)
+        cdArr.push(showCountdown)
     }
     function timesCalled() {
         called++
     }
-    return {countdown, timesCalled}
+    function resetTimer(){
+        //reset the countdown for different pages YOU HAVE TO STORE EACH TIMER IN AN ARRAY TO REFRENCE IT WOOO BOY
+        cdArr.forEach(timer => clearTimeout(timer))
+        called = 0
+        cdArr = []
+        arr = []
+        return
+    }
+    function show() {
+        console.log({called, arr, cdArr})
+    }
+    return {countdown, timesCalled, resetTimer, show}
 }
 
 function displayTime(arr) {
@@ -100,9 +181,14 @@ function displayTime(arr) {
         v.textContent = `${arr[i]}`
     })
 }
-function handleTime(obj) {
+function handleTime(obj, obj2) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    if(obj2 == "FINISHED") {
+        timer.timesCalled()
+        timer.countdown(obj2)
+        return `Finished`
+    }
     if(obj == null || obj.timeUntilAiring == null) {
         timer.timesCalled()
         timer.countdown(null)
@@ -120,7 +206,7 @@ function handleTime(obj) {
 
 //do something with the links at the bottom
 function buildCard(obj){
-    const episodeDate = handleTime(obj.nextEpisode)
+    const episodeDate = handleTime(obj.nextEpisode, obj.status)
     let template = `
     <div class="card anime-card mb-3 col-md-4 col-xl-3">
 
@@ -128,20 +214,23 @@ function buildCard(obj){
             <a href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji}</a>
         </h5>
         <ol class="anime-genre">
-            ${obj.genres.map((v,i,a) => `<li class="text-muted">${v}</li>` ).join(' ')}
+            ${obj.genres.length >= 1 ? obj.genres.map((v,i,a) => `<li class="text-muted">${v}</li>`).join(' ') : '<li class="text-muted">No information</li>'}
         </ol>
 
     <div class="contents">
         <div class="col img-spot">
             <time class="countdown"></time> 
             <img class="card-img-top anime-cover-image" src="${obj.coverImage.large}" alt="${obj.title.english ? obj.title.english : obj.title.romaji}" srcset="">
+            <div class="format">
+                <div class="format-text-area">${obj.format.replace("_", ' ') || 'Anime'}</div>
+            </div>
         </div>
         <div class="row no-gutters row-anime-info">
             <div class="anime-info col border-top border-left">
                 <div class="meta-container">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item company">${obj.prodCompany.nodes[0].name}</li>
-                        <li class="list-group-item date">${episodeDate}</li>
+                        <li class="list-group-item company">${obj.prodCompany.name || 'No information'}</li>
+                        <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished airing' : episodeDate}</li>
                         <li class="list-group-item meta-data">
                             <div class="source">${obj.source.replace('_',' ')}</div>
                             <div class="episodes">${obj.episodes ? obj.episodes : '12?'} x ${obj.duration ? obj.duration + ' min' : '24 min?'}</div>
@@ -149,7 +238,7 @@ function buildCard(obj){
                     </ul>
                 </div>
                 <div class="anime-description">
-                    ${obj.description}
+                    ${obj.description || 'No synopsis has been added yet.'}
                 </div>
             </div>
         </div>
@@ -164,11 +253,16 @@ function buildCard(obj){
     insertPoint.insertAdjacentHTML('beforeend', template)
 }
 
+//these can go in a different file soon
 function updateTimes(obj) {
     let dateDOMLocation = document.querySelectorAll('.list-group-item.date')
     obj.media.forEach((element, i, arr) => {
-        const episodeDate = handleTime(element.nextAiringEpisode)
-        dateDOMLocation[i].textContent = episodeDate
+        try {
+            const episodeDate = handleTime(element.nextAiringEpisode)
+            dateDOMLocation[i].textContent = episodeDate
+        } catch(error) {
+            console.log(error, {element})
+        }
     })
 }
 
@@ -177,6 +271,8 @@ function saveHistory() {
     siteStorage.setItem(season, insertPoint.innerHTML)
 }
 
+//this needs a re-write to work with the dynamic enpoints of the server's GET params. need a way of caching tv, movies, OVA, ONAs seperately 
+//or it might be redundant
 function checkCache(key) {
     if(siteStorage.hasOwnProperty(key)) {
         insertPoint.insertAdjacentHTML('beforeend', siteStorage.getItem(key))
@@ -186,6 +282,7 @@ function checkCache(key) {
             })
             Promise.resolve(times)
                 .then(function (val){
+                    console.log(val)
                     updateTimes(val)
                 })
         saveHistory()
@@ -194,15 +291,27 @@ function checkCache(key) {
     return false
 }
 
-function checkSeason() {
-    let now = new Date()
+function checkSeason(season, year, position) {
     const seasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL']
+    if(season && year) {
+        // console.log(season, year, position)
+        let ind = seasons.indexOf(season.toUpperCase())
+        year = Number(year)
+        if(position == 'up') {
+            ind++
+            ind == 4 ? (ind = 0, year++): ind
+        }
+        if(position == 'down') {
+            ind--
+            ind < 0 ? (ind = 3, year--) : ind
+        }
+        return `${seasons[ind]}-${year}`
+    }
+
+    let now = new Date()
     const thisMonth = now.getMonth()
     const thisYear = now.getFullYear()
-
     let seasonAsInt = Math.round(thisMonth / 3)
-        seasonAsInt == 4 ? seasonAsInt = 0 : seasonAsInt
-    
-    const thisSeason = `${seasons[seasonAsInt]} ${thisYear}`
-    return thisSeason
+    seasonAsInt == 4 ? seasonAsInt = 0 : seasonAsInt
+    return `${seasons[seasonAsInt]}-${thisYear}`
 }

@@ -1,8 +1,5 @@
 const axios = require('axios')
 
-
-
-
 let variables
 let querys
 
@@ -32,7 +29,6 @@ async function getInfo(query) {
     .then(async function (response) {
         // console.log(response.data.data.Page.media) = response of all shows
         return  response.data.data.Page
-        
     })
     .catch(function (error) {
         console.log(error.response.statusText)
@@ -40,6 +36,7 @@ async function getInfo(query) {
         console.log(error.response.data.errors[0].locations)
     })
     return handleResponse(res)
+    
 }
 
 // const options = {

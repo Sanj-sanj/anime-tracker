@@ -4,16 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/main.css">
-    <title>Seasonal Airing Tracker</title>
+    <title>Seasonal Anime tracker</title>
 </head>
 <body class="d-flex text-center bg-secondary">
     <div class="container-fluid main-container">
         
         <div class="navbar navbar-dark bg-dark">
-            <h3 class="navbar-text">Anime Tracker</h3>
+            <h2 class="navbar-text">Anime Seasons</h2>
         </div>
         <div class="alert alert-dark ">
-            <h4 class='anime-avail-bar'></h4>
+                <div class="anime-season-area border-dark border-bottom row">
+                    <div class="season-selection">
+                        <button class="btn prev-season" data-position="down">
+                            <svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-caret-left-fill" fill="#4d9de2" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3.86 8.753l5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+                              </svg>
+                        </button>
+                        <h2 class="anime-season-header">Fall 2020</h2>
+                        <button class="btn next-season" data-position="up">
+                            <svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="#4d9de2" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+                              </svg>
+                        </button>
+                    </div>
+
+                    <div class="nav format-options">
+                        <ul class="format-choices">
+                            <li class='f-choice active'>
+                                <a href="#" data-format="TV">Television</a>
+                            </li>
+                            <li class='f-choice'>
+                                <a href="#" data-format="MOVIE">Movies</a>
+                            </li>
+                            <li class='f-choice'>
+                                <a href="#" data-format="OVA">OVA</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
         </div>
 
         <div class="container-fluid anime-container">

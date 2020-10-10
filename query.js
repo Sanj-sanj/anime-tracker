@@ -1,7 +1,7 @@
 // Here we define our query as a multi-line string
 // Storing it in a separate .graphql/.gql file is also possible
 var queryMain = `
-query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeason, $seasonYear: Int, $format: MediaFormat) { # Define which variables will be used in the query (id)
+query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeason, $seasonYear: Int, $format: MediaFormat, $format_not: MediaFormat, $format_in: [MediaFormat] $isAdult: Boolean) { # Define which variables will be used in the query (id)
     Page (page: $page, perPage: $perPage) {
         pageInfo {
           total
@@ -10,7 +10,7 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeaso
           hasNextPage
           perPage
         }
-      media (id: $id, type: ANIME, search: $search, season: $season, seasonYear: $seasonYear, format: $format) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
+      media (id: $id, type: ANIME, search: $search, season: $season, seasonYear: $seasonYear, format: $format, format_not: $format_not, format_in: $format_in, isAdult: $isAdult) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
             id
             idMal
             title {
@@ -160,7 +160,7 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeaso
 `;
 
 var queryTimes = `
-query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeason, $seasonYear: Int, $format: MediaFormat) { # Define which variables will be used in the query (id)
+query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeason, $seasonYear: Int, $format: MediaFormat, $format_not: MediaFormat, $format_in: [MediaFormat] $isAdult: Boolean) { # Define which variables will be used in the query (id)
     Page (page: $page, perPage: $perPage) {
         pageInfo {
           total
@@ -169,7 +169,7 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeaso
           hasNextPage
           perPage
         }
-      media (id: $id, type: ANIME, search: $search, season: $season, seasonYear: $seasonYear, format: $format) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
+      media (id: $id, type: ANIME, search: $search, season: $season, seasonYear: $seasonYear, format: $format, format_not: $format_not, format_in: $format_in, isAdult: $isAdult) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
             id
             title {
                 romaji

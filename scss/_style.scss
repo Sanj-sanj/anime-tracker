@@ -2,6 +2,44 @@ html,
 body {
     height: 100%;
 }
+.anime-season-area.row{
+    align-items: center;
+    justify-content: left;
+}
+.season-selection {
+    display: flex;
+    align-items: center;
+    padding-left: .5em;
+}
+h2.anime-season-header {
+    margin: 0;
+    padding: 0 0.5em;
+}
+ul.format-choices {
+    margin: 0; 
+    list-style: none;
+    display: flex;
+    padding: 0;
+    font-size: 21px;
+}
+.f-choice.active a {
+    font-weight: 700;
+    border-bottom: solid 2px dimgray ;
+    color: black;
+}
+li.f-choice {
+    padding-right: 3rem;
+}
+li.f-choice a {
+    color: #8a8a8a
+}
+li.f-choice a:hover {
+    color: black;
+    text-decoration: none;
+
+}
+
+
 .main-container{
     padding: 0px                !important;
 }
@@ -24,6 +62,17 @@ body {
     max-width: fit-content      !important;
     max-width: moz-min-content  !important;
     padding: 0em                !important;
+}
+.format {
+    position: absolute;
+    z-index: 1;
+    right: 1%;
+    bottom: 1%;
+    background: #1f1f1f;
+    color: white;
+    padding: 1% 4%;
+    opacity: 75%;
+    font-size: 80%;
 }
 .countdown {
     position: absolute;
@@ -60,8 +109,9 @@ ol.anime-genre li:not(:last-child)::after {
     content: ' · ';
 }
 .card-img-top.anime-cover-image{
-    width: auto                 !important;
+    width: 180px                 !important;
     max-height: 252px;
+    min-height: 252px;
 }
 .top-bar {
     width: 100%;
