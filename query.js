@@ -176,13 +176,8 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String, $season: MediaSeaso
                 english
                 native
             }
-            
-            type
             status
             episodes
-            averageScore
-            meanScore
-            popularity
             season
             startDate {
                 year

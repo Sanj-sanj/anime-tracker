@@ -2,6 +2,12 @@ html,
 body {
     height: 100%;
 }
+.navbar.navbar-dark{
+    z-index: 20;
+}
+.alert.alert-dark{
+    z-index: 20;
+}
 .anime-season-area.row{
     align-items: center;
     justify-content: left;
@@ -27,7 +33,7 @@ ul.format-choices {
     border-bottom: solid 2px dimgray ;
     color: black;
 }
-li.f-choice {
+li.f-choice:not(:last-child) {
     padding-right: 3rem;
 }
 li.f-choice a {
@@ -38,8 +44,25 @@ li.f-choice a:hover {
     text-decoration: none;
 
 }
+.options-area {
+    display: flex;
+    justify-content: left;
+}
+.input-group {
+    width: 14em                  !important;
+    margin-right: 1rem;
+}
+.input-group-text {
+    width: 4.5em;
+    justify-content: center;
+}
 
-
+.btn.pull-dropdown{
+    display: none;
+}
+.bi.opt-toggle {
+    display: none;
+}
 .main-container{
     padding: 0px                !important;
 }
@@ -199,10 +222,69 @@ ol.anime-genre li:not(:last-child)::after {
     padding: 15px;
     margin: 5vh auto;
 }
+.loading-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+.spinner {
+    width: fit-content;
+    animation: spinner 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+    display: none;
+    position: absolute;
+    z-index: 100;
+}
+@keyframes spinner {
+    to {
+        transform: rotateZ(360deg);
+    }
+}
+// CSS for transition // 
+
+.bi.show {
+    display: initial;
+}
+.view-area {
+    bottom: 0em                 !important;
+}
 
 @media (max-width: 498px) {
+    .row.row-card-area {
+        position: relative;
+        bottom: 8em;
+        transition: bottom 1s ease;
+    }
     .anime-container {
         padding: 0 1em          !important;
+    }
+    .options-area {
+        display: block;
+        position: relative;
+        bottom: 8em;
+        transition: bottom 1s ease;
+    }
+    .btn.pull-dropdown{
+        display: initial;
+    }
+}
+@media (max-width: 644px) {
+    .season-selection {
+        width: 100%;
+        justify-content: center;
+    }
+    .nav.format-options {
+        width: 100%;
+        justify-content: center;
+    }
+}
+@media (max-width: 746px) {
+    .input-group {
+        width: 100%                  !important;
+        margin-right: 1rem;
     }
 }
 @media (min-width: 746px){

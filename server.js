@@ -51,21 +51,19 @@ server.get( '/main/:season/:format?' ,async (req, res) => {
     return info
 })
 
-// server.get('/info',async (req, res) => {
-//     let info
-//     async function request() {
-//         await graphQL.getInfo(thisQuery.queryMain)
-//             .then(data => {
-//                 res.status(200).json(data)
-//                 return info = data
-//             })
-//     }
-//     await request()
-//     console.log(info.pageInfo)
-//     return info
-// })
+server.get('/timers/:season/:format?', async(req, res) => {
+    let variables = {
+        // id: 116697,
+        isAdult: false,
+        page: 1,
+        perPage: 50,
+        format_in: ['TV', 'TV_SHORT'], //defaults to TV series
+        season: "",
+        seasonYear: ""
+    
+    };
+    module.exports = {variables}
 
-server.get('/timers/:season/', async(req, res) => {
     let times
     async function requestTime() {
         await graphQL.getInfo(thisQuery.queryTimes)

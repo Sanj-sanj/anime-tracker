@@ -42,15 +42,49 @@
                         </ul>
                     </div>
                 </div>
+                
+            </div>
 
-        </div>
-
-        <div class="container-fluid anime-container">
-            <div class="row row-card-area" >
+            <div class="container-fluid anime-container">
+                <div class="options-area ">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="sort-prefs">Sort by:</label>
+                        </div>
+                        <select class="custom-select" name="sort-by" id="sort-prefs">
+                            <option value="popularity">Popularity</option>
+                            <option value="countdown">Countdown</option>
+                            <option value="rating">Rating</option>
+                            <option value="air-date">Air date</option>
+                        </select>
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="sort-names">Titles:</label>
+                        </div>
+                        <select class="custom-select" name="sort-by" id="sort-prefs">
+                            <option value="english">English</option>
+                            <option value="romaji">Romaji</option>
+                        </select>
+                    </div>
+                    <button class="btn pull-dropdown" type="button">
+                        <svg width="3em" height="3em" viewBox="0 0 16 16" class="bi opt-toggle bi-chevron-compact-down show" fill="#4d9de2" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67z"/>
+                          </svg>
+                        <svg width="3em" height="3em" viewBox="0 0 16 16" class="bi opt-toggle bi-chevron-compact-up" fill="#4d9de2" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M7.776 5.553a.5.5 0 0 1 .448 0l6 3a.5.5 0 1 1-.448.894L8 6.56 2.224 9.447a.5.5 0 1 1-.448-.894l6-3z"/>
+                          </svg>
+                    </button>
+                </div>
+            <div class="loading-area">
+                <img class="spinner" src="imgs/1F63B.svg" alt="Cat icon spinner">
+            </div>
+            <div class="row row-card-area " >
 
             </div>
         </div>
     </div>
 <script src="js/index.js"></script>
+<script src="js/style.js"></script>
 </body>
 </html>

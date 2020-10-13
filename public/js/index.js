@@ -1,9 +1,15 @@
+
 const timer = countingFunc()
+const changeTitles = sortNames()
 const siteStorage = localStorage
 const user = siteStorage.getItem('user')    
+const spinner = document.querySelector('.spinner')
+
 const insertPoint = document.querySelector('.row-card-area')
-const btns = document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
-const formats = document.querySelectorAll('.f-choice a').forEach(link => link.addEventListener('click', changeFormat))
+document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
+document.querySelectorAll('.f-choice a').forEach(link => link.addEventListener('click', changeFormat))
+const selects = document.querySelectorAll('.custom-select')
+    selects.forEach(el => el.addEventListener('change', sortShows))
 let showCountdown
 
 function validateUser() {
@@ -18,13 +24,106 @@ function validateUser() {
 }
 validateUser()
 
+
+function sortShows() {
+    let selection = [];
+    selects.forEach((el) => selection.push(el.value))
+    console.log(selection)
+    const res = sortBy(selection[0])
+    insertPoint.innerHTML = `${res.map(el => el.c.outerHTML).join(' ')}`
+    changeTitles.flip(selection[1])
+    //create bool to pass to buildcards to set titles lang prefs
+}
+function sortNames() {
+    let currLang = 'english'
+    let prevTitles = []
+    
+    function flip(string) {
+        let cards = document.querySelectorAll('[data-alt]')
+        if(currLang != string) {
+            prevTitles = []
+            cards.forEach((card, i) => {
+                prevTitles.push(card.innerText)
+                card.innerText = card.dataset.alt
+                card.dataset.alt = prevTitles[i]
+                currLang = string
+            })
+        }
+    }
+    return {flip}
+}
+
+function sortBy(string) {
+    let cards = document.querySelectorAll('.anime-card')
+    let scoreCard = document.querySelectorAll('.meta-container')
+    let sorted = []
+    if(string == 'popularity') {
+        scoreCard.forEach((card, i) => {
+            const p = card.dataset.popularity
+            const cd = card.dataset.cd
+            const c = cards[i]
+            sorted.push({c, p, cd})
+        })
+        sorted = sorted.sort(function (a, b) {
+            return b.p - a.p
+        })
+    }
+    if(string == 'countdown') {
+        const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
+        scoreCard.forEach((card, i) => {
+            const cd = card.dataset.cd 
+            const c = cards[i]
+            if(!Number(card.dataset.cd)) {
+                return notNumeric.push({c, cd})
+            }
+           sorted.push({c, cd})
+       }) 
+       sorted = sorted.sort(function (a, b) {
+           return Number(a.cd) - Number(b.cd)
+       }).concat(notNumeric)
+    }
+    if(string == 'rating') {
+        const noRating = []
+        scoreCard.forEach((card, i) => {
+            const s = card.dataset.score
+            const cd = card.dataset.cd
+            const c = cards[i]
+            if(!Number(s)) {
+                return noRating.push({c, s, cd})
+            } 
+            sorted.push({c, s, cd})
+        })
+        sorted = sorted.sort(function (a, b) {
+            return b.s - a.s
+        }).concat(noRating)
+    }
+    if(string == 'air-date') {
+        const noDate = []
+        scoreCard.forEach((card, i) => {
+            const cd = card.dataset.cd
+            const d = new Date(card.dataset.start)
+            const c = cards[i]
+            if(d == 'Invalid Date') {
+                return noDate.push({c, d, cd})
+            }
+            sorted.push({c, d, cd})
+        })
+        sorted = sorted.sort(function (a, b) {
+            return a.d - b.d
+        }).concat(noDate)
+    }
+    timer.resetTimer()
+    createCountdowns(sorted)
+    return sorted
+}
+
 function changeFormat(e) {
     const activeLink = document.querySelector('.f-choice.active').classList.remove('active')
     const currSeason = document.querySelector('.anime-season-header').textContent.split(' ').join('-').toLocaleUpperCase()
     const format = e.target.dataset.format
     this.parentNode.classList.add('active')
     timer.resetTimer()
-    setTimeout(loadInfo(currSeason, format), 20)
+    loadInfo(currSeason, format)
 }
 
 function changeSeason(e){
@@ -34,7 +133,7 @@ function changeSeason(e){
     const change = this.dataset.position
     const season = checkSeason(...currSeason, change)
     timer.resetTimer()
-    setTimeout(loadInfo(season, format), 20)
+    loadInfo(season, format)
 }
 
 function loadInfo(changeSeason, format) {
@@ -51,16 +150,17 @@ function loadInfo(changeSeason, format) {
 function gatherAPI(season, format) {
     console.log('calling api')
     let values 
+    spinner.style.display = 'inherit'
     let res = fetch(`/main/${season}/${format == null ? '' : format}`)
     .then(function(resp) {
         return resp.json()
     })
     Promise.resolve(res)
         .then(function (val){
-            vales = val
+            values = val
             loopInnerItems(val)
+            spinner.style.display = 'none'
         })
-
         return values
 }
 function loopInnerItems(arr) {
@@ -69,10 +169,13 @@ function loopInnerItems(arr) {
             title: element.title,
             format: element.format || 'N/A',
             genres: element.genres,
+            nextEpisode: element.nextAiringEpisode || 'N/A',
             prodCompany: element.studios.nodes.find(studio => studio.isAnimationStudio) || 'N/A',
-            nextEpisode: element.nextAiringEpisode,
+            popularity: element.popularity,
+            score: element.meanScore,
             source: element.source || 'N/A',
             status: element.status || 'N/A',
+            startDate: element.startDate || null,
             episodes: element.episodes,
             duration: element.duration,
             description: element.description,
@@ -81,6 +184,7 @@ function loopInnerItems(arr) {
         }
         buildCard(information)  
     });
+    sortShows()
     saveHistory()
 }
 
@@ -106,7 +210,6 @@ function countingFunc() {
     let cdArr = []
     function countdown (nextEp) {
         showCountdown = setInterval(() => {
-
             if(nextEp == "FINISHED") {
                 arr.push('Finished')
                 if(arr.length == called) {
@@ -115,7 +218,7 @@ function countingFunc() {
                 }
                 return
             }
-            if(nextEp == null) { // DISPLAY RELEASED IF AIR DATE IS ALREADY PASSED
+            if(isNaN(nextEp)) { // DISPLAY RELEASED IF AIR DATE IS ALREADY PASSED
                 arr.push('No information')
                 if(arr.length == called) {
                     displayTime(arr)
@@ -124,16 +227,14 @@ function countingFunc() {
                 return 
             }
             const today = new Date()
-            const thisMonth = today.getMonth()
-            
+
             let days = (nextEp.getDate() - today.getDate()) 
             const totalSeconds = Math.round((nextEp - Date.now()) / 1000)
             const totalMins = totalSeconds / 60
             const seconds = Math.round((nextEp - Date.now()) / 1000) % 60
             const mins =  Math.floor(totalMins) % 60
             const hours = Math.floor(totalMins / 60) % 24
-
-            if(nextEp.getMonth() > today.getMonth()) {
+            if(nextEp.getMonth() != today.getMonth()) {
                 days = countDaysBetweenMonths(today, nextEp)
             }
             
@@ -170,26 +271,33 @@ function displayTime(arr) {
         v.textContent = `${arr[i]}`
     })
 }
+function createCountdowns(arr) {
+    arr.forEach(item => {
+        if(!Number(item.cd)) {
+            timer.timesCalled()
+            timer.countdown(item.cd)
+            return
+        }
+        const nextEp = new Date()
+        nextEp.setSeconds(item.cd)
+        timer.timesCalled()
+        timer.countdown(nextEp)
+    })
+}
+
 function handleTime(obj, obj2) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     if(obj2 == "FINISHED") {
-        timer.timesCalled()
-        timer.countdown(obj2)
         return `Finished`
     }
     if(obj == null || obj.timeUntilAiring == null) {
-        timer.timesCalled()
-        timer.countdown(null)
         return `No infomation`
     }
     const nextEpDate = new Date()
         nextEpDate.setSeconds(obj.timeUntilAiring)
     let nextEpMinsRounded = Math.ceil(nextEpDate.getMinutes() / nextEpDate.getMinutes() + nextEpDate.getMinutes()).toFixed(1)
         nextEpMinsRounded.replace('.', '')
-    
-    timer.timesCalled() 
-    timer.countdown(nextEpDate)
     return `${days[nextEpDate.getDay()]} ${months[nextEpDate.getMonth()]} ${nextEpDate.getDate()} ${nextEpDate.getFullYear()} ${nextEpDate.getHours()}:${nextEpDate.getMinutes() < 10 ? '0' + nextEpDate.getMinutes() : nextEpDate.getMinutes()} `
 }
 
@@ -199,7 +307,7 @@ function buildCard(obj){
     let template = `
     <div class="card anime-card mb-3 col-md-4 col-xl-3">
 
-        <h5 class="anime-title">
+        <h5 class="anime-title" data-alt="${obj.title.romaji ? obj.title.romaji : obj.title.english}">
             <a href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji}</a>
         </h5>
         <ol class="anime-genre">
@@ -216,10 +324,10 @@ function buildCard(obj){
         </div>
         <div class="row no-gutters row-anime-info">
             <div class="anime-info col border-top border-left">
-                <div class="meta-container">
+                <div class="meta-container" data-popularity='${obj.popularity}' data-score='${obj.score}' data-cd='${obj.nextEpisode.timeUntilAiring || obj.status}' data-start='${obj.startDate.year}, ${obj.startDate.month - 1}, ${obj.startDate.day}' ">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item company">${obj.prodCompany.name || 'No information'}</li>
-                        <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished airing' : episodeDate}</li>
+                        <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished' : episodeDate}</li>
                         <li class="list-group-item meta-data">
                             <div class="source">${obj.source.replace('_',' ')}</div>
                             <div class="episodes">${obj.episodes ? obj.episodes : '12?'} x ${obj.duration ? obj.duration + ' min' : '24 min?'}</div>
