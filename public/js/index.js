@@ -56,11 +56,13 @@ function sortNames() {
 function sortBy(string) {
     let cards = document.querySelectorAll('.anime-card')
     let scoreCard = document.querySelectorAll('.meta-container')
+    let times = document.querySelectorAll('span')
     let sorted = []
     if(string == 'popularity') {
         scoreCard.forEach((card, i) => {
+            const airDate = new Date(card.children[0].children[1].textContent)
+            const cd = (airDate - Date.now()) / 1000
             const p = card.dataset.popularity
-            const cd = card.dataset.cd
             const c = cards[i]
             sorted.push({c, p, cd})
         })
@@ -71,7 +73,8 @@ function sortBy(string) {
     if(string == 'countdown') {
         const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
         scoreCard.forEach((card, i) => {
-            const cd = card.dataset.cd 
+            const airDate = new Date(card.children[0].children[1].textContent)
+            const cd = (airDate - Date.now()) / 1000
             const c = cards[i]
             if(!Number(card.dataset.cd)) {
                 return notNumeric.push({c, cd})
@@ -85,8 +88,9 @@ function sortBy(string) {
     if(string == 'rating') {
         const noRating = []
         scoreCard.forEach((card, i) => {
+            const airDate = new Date(card.children[0].children[1].textContent)
+            const cd = (airDate - Date.now()) / 1000
             const s = card.dataset.score
-            const cd = card.dataset.cd
             const c = cards[i]
             if(!Number(s)) {
                 return noRating.push({c, s, cd})
@@ -100,7 +104,8 @@ function sortBy(string) {
     if(string == 'air-date') {
         const noDate = []
         scoreCard.forEach((card, i) => {
-            const cd = card.dataset.cd
+            const airDate = new Date(card.children[0].children[1].textContent)
+            const cd = (airDate - Date.now()) / 1000
             const d = new Date(card.dataset.start)
             const c = cards[i]
             if(d == 'Invalid Date') {
@@ -111,6 +116,7 @@ function sortBy(string) {
         sorted = sorted.sort(function (a, b) {
             return a.d - b.d
         }).concat(noDate)
+        console.log(sorted)
     }
     timer.resetTimer()
     createCountdowns(sorted)
@@ -164,6 +170,7 @@ function gatherAPI(season, format) {
         return values
 }
 function loopInnerItems(arr) {
+    console.log(arr)
     arr.media.forEach(element => {
         let information = {
             title: element.title,
@@ -194,10 +201,18 @@ function getDaysInAMonth (month, year) {
 function countDaysBetweenMonths(today, nextDate) {
     const daysInBtwnARR = []
     let nextEpMonth = nextDate.getMonth() 
-    daysInBtwnARR.push(today.getDate(), (getDaysInAMonth(today.getMonth() + 1, today.getFullYear())) - today.getDate())
-
+    //get remaining days left in this month + the days till the air date of airing month
+    daysInBtwnARR.push(nextDate.getDate(), (getDaysInAMonth(today.getMonth() + 1, today.getFullYear())) - today.getDate())
+    if(nextDate.getFullYear() != today.getFullYear()) {
+        for(let i = 0; i < nextEpMonth; i++) {
+            daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
+        }
+        nextEpMonth = 12
+    }
+    
+        console.log(nextDate.getMonth())
     for(nextEpMonth; nextEpMonth > today.getMonth(); nextEpMonth--) {
-        if(nextEpMonth - 1 > today.getMonth) {
+        if(nextEpMonth - 1 > today.getMonth()) {
             daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
         }
     }
@@ -227,7 +242,6 @@ function countingFunc() {
                 return 
             }
             const today = new Date()
-
             let days = (nextEp.getDate() - today.getDate()) 
             const totalSeconds = Math.round((nextEp - Date.now()) / 1000)
             const totalMins = totalSeconds / 60
@@ -268,7 +282,7 @@ function countingFunc() {
 function displayTime(arr) {
     const timerArea = document.querySelectorAll('.countdown')
     timerArea.forEach(function (v, i, a) {
-        v.textContent = `${arr[i]}`
+        v.children[0].textContent = `${ arr[i]}`
     })
 }
 function createCountdowns(arr) {
@@ -316,7 +330,7 @@ function buildCard(obj){
 
     <div class="contents">
         <div class="col img-spot">
-            <time class="countdown"></time> 
+            <time class="countdown">${obj.nextEpisode.episode ? 'Ep ' + obj.nextEpisode.episode : ''} <span></span></time> 
             <img class="card-img-top anime-cover-image" src="${obj.coverImage.large}" alt="${obj.title.english ? obj.title.english : obj.title.romaji}" srcset="">
             <div class="format">
                 <div class="format-text-area">${obj.format.replace("_", ' ') || 'Anime'}</div>
