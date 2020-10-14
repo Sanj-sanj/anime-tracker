@@ -1,6 +1,5 @@
 
 const timer = countingFunc()
-const changeTitles = sortNames()
 const siteStorage = localStorage
 const user = siteStorage.getItem('user')    
 const spinner = document.querySelector('.spinner')
@@ -28,35 +27,21 @@ validateUser()
 function sortShows() {
     let selection = [];
     selects.forEach((el) => selection.push(el.value))
-    console.log(selection)
     const res = sortBy(selection[0])
     insertPoint.innerHTML = `${res.map(el => el.c.outerHTML).join(' ')}`
-    changeTitles.flip(selection[1])
-    //create bool to pass to buildcards to set titles lang prefs
+    setTitles(selection[1])
 }
-function sortNames() {
-    let currLang = 'english'
-    let prevTitles = []
-    
-    function flip(string) {
-        let cards = document.querySelectorAll('[data-alt]')
-        if(currLang != string) {
-            prevTitles = []
-            cards.forEach((card, i) => {
-                prevTitles.push(card.innerText)
-                card.innerText = card.dataset.alt
-                card.dataset.alt = prevTitles[i]
-                currLang = string
-            })
-        }
-    }
-    return {flip}
+
+function setTitles(string) {
+    const cards = document.querySelectorAll('.anime-title')
+        cards.forEach((card, i) => {
+            string == 'romaji' ? card.children[0].innerText = card.dataset.rom : card.children[0].innerText = card.dataset.en
+        })
 }
 
 function sortBy(string) {
-    let cards = document.querySelectorAll('.anime-card')
-    let scoreCard = document.querySelectorAll('.meta-container')
-    let times = document.querySelectorAll('span')
+    const cards = document.querySelectorAll('.anime-card')
+    const scoreCard = document.querySelectorAll('.meta-container')
     let sorted = []
     if(string == 'popularity') {
         scoreCard.forEach((card, i) => {
@@ -105,6 +90,7 @@ function sortBy(string) {
         const noDate = []
         scoreCard.forEach((card, i) => {
             const airDate = new Date(card.children[0].children[1].textContent)
+            console.log(card.children[0].children[1].textContent)
             const cd = (airDate - Date.now()) / 1000
             const d = new Date(card.dataset.start)
             const c = cards[i]
@@ -321,7 +307,7 @@ function buildCard(obj){
     let template = `
     <div class="card anime-card mb-3 col-md-4 col-xl-3">
 
-        <h5 class="anime-title" data-alt="${obj.title.romaji ? obj.title.romaji : obj.title.english}">
+        <h5 class="anime-title" data-rom="${obj.title.romaji ? obj.title.romaji : obj.title.english}" data-en="${obj.title.english ? obj.title.english : obj.title.romaji}">
             <a href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji}</a>
         </h5>
         <ol class="anime-genre">
