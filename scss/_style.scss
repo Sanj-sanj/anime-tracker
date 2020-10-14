@@ -115,8 +115,18 @@ li.f-choice a:hover {
     min-height: 2.5em;
     align-items: center;
     justify-content: center;
-    line-height: 1.1;
+    line-height: initial;
     font-size: 1rem;
+}
+.main-title{
+    /* auotprefixer: off */
+    -webkit-box-orient: vertical        !important;
+    /* auotprefixer: on */
+    display: block;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
 }
 .anime-genre{
     padding: 0;

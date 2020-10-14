@@ -33,10 +33,13 @@ function sortShows() {
 }
 
 function setTitles(string) {
-    const cards = document.querySelectorAll('.anime-title')
-        cards.forEach((card, i) => {
-            string == 'romaji' ? card.children[0].innerText = card.dataset.rom : card.children[0].innerText = card.dataset.en
-        })
+    document.querySelectorAll('.anime-title').forEach((card, i) => {
+        string == 'romaji' ? 
+            (card.children[0].innerText = card.dataset.rom,
+            card.children[0].title = card.dataset.rom) :
+            (card.children[0].innerText = card.dataset.en,
+            card.children[0].title = card.dataset.en)
+    })
 }
 
 function sortBy(string) {
@@ -110,10 +113,10 @@ function sortBy(string) {
 }
 
 function changeFormat(e) {
-    const activeLink = document.querySelector('.f-choice.active').classList.remove('active')
+    document.querySelector('.f-choice.active').classList.remove('active')
+    this.parentNode.classList.add('active')
     const currSeason = document.querySelector('.anime-season-header').textContent.split(' ').join('-').toLocaleUpperCase()
     const format = e.target.dataset.format
-    this.parentNode.classList.add('active')
     timer.resetTimer()
     loadInfo(currSeason, format)
 }
@@ -156,7 +159,6 @@ function gatherAPI(season, format) {
         return values
 }
 function loopInnerItems(arr) {
-    console.log(arr)
     arr.media.forEach(element => {
         let information = {
             title: element.title,
@@ -178,6 +180,8 @@ function loopInnerItems(arr) {
         buildCard(information)  
     });
     sortShows()
+    document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
+
     saveHistory()
 }
 
@@ -195,8 +199,6 @@ function countDaysBetweenMonths(today, nextDate) {
         }
         nextEpMonth = 12
     }
-    
-        console.log(nextDate.getMonth())
     for(nextEpMonth; nextEpMonth > today.getMonth(); nextEpMonth--) {
         if(nextEpMonth - 1 > today.getMonth()) {
             daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
@@ -308,7 +310,7 @@ function buildCard(obj){
     <div class="card anime-card mb-3 col-md-4 col-xl-3">
 
         <h5 class="anime-title" data-rom="${obj.title.romaji ? obj.title.romaji : obj.title.english}" data-en="${obj.title.english ? obj.title.english : obj.title.romaji}">
-            <a href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji}</a>
+            <a class="main-title" href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji} </a>
         </h5>
         <ol class="anime-genre">
             ${obj.genres.length >= 1 ? obj.genres.map((v,i,a) => `<li class="text-muted">${v}</li>`).join(' ') : '<li class="text-muted">No information</li>'}
