@@ -119,9 +119,6 @@ li.f-choice a:hover {
     font-size: 1rem;
 }
 .main-title{
-    /* auotprefixer: off */
-    -webkit-box-orient: vertical        !important;
-    /* auotprefixer: on */
     display: block;
     display: -webkit-box;
     text-overflow: ellipsis;

@@ -48,8 +48,8 @@ function sortBy(string) {
     let sorted = []
     if(string == 'popularity') {
         scoreCard.forEach((card, i) => {
-            const airDate = new Date(card.children[0].children[1].textContent)
-            const cd = (airDate - Date.now()) / 1000
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now())
             const p = card.dataset.popularity
             const c = cards[i]
             sorted.push({c, p, cd})
@@ -61,8 +61,8 @@ function sortBy(string) {
     if(string == 'countdown') {
         const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
         scoreCard.forEach((card, i) => {
-            const airDate = new Date(card.children[0].children[1].textContent)
-            const cd = (airDate - Date.now()) / 1000
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now()) 
             const c = cards[i]
             if(!Number(card.dataset.cd)) {
                 return notNumeric.push({c, cd})
@@ -76,8 +76,8 @@ function sortBy(string) {
     if(string == 'rating') {
         const noRating = []
         scoreCard.forEach((card, i) => {
-            const airDate = new Date(card.children[0].children[1].textContent)
-            const cd = (airDate - Date.now()) / 1000
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now())
             const s = card.dataset.score
             const c = cards[i]
             if(!Number(s)) {
@@ -92,9 +92,8 @@ function sortBy(string) {
     if(string == 'air-date') {
         const noDate = []
         scoreCard.forEach((card, i) => {
-            const airDate = new Date(card.children[0].children[1].textContent)
-            console.log(card.children[0].children[1].textContent)
-            const cd = (airDate - Date.now()) / 1000
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now()) 
             const d = new Date(card.dataset.start)
             const c = cards[i]
             if(d == 'Invalid Date') {
@@ -105,7 +104,6 @@ function sortBy(string) {
         sorted = sorted.sort(function (a, b) {
             return a.d - b.d
         }).concat(noDate)
-        console.log(sorted)
     }
     timer.resetTimer()
     createCountdowns(sorted)
@@ -181,31 +179,8 @@ function loopInnerItems(arr) {
     });
     sortShows()
     document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
-
-    saveHistory()
 }
 
-function getDaysInAMonth (month, year) {
-    return new Date(year, month, 0).getDate()
-}
-function countDaysBetweenMonths(today, nextDate) {
-    const daysInBtwnARR = []
-    let nextEpMonth = nextDate.getMonth() 
-    //get remaining days left in this month + the days till the air date of airing month
-    daysInBtwnARR.push(nextDate.getDate(), (getDaysInAMonth(today.getMonth() + 1, today.getFullYear())) - today.getDate())
-    if(nextDate.getFullYear() != today.getFullYear()) {
-        for(let i = 0; i < nextEpMonth; i++) {
-            daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
-        }
-        nextEpMonth = 12
-    }
-    for(nextEpMonth; nextEpMonth > today.getMonth(); nextEpMonth--) {
-        if(nextEpMonth - 1 > today.getMonth()) {
-            daysInBtwnARR.push(getDaysInAMonth(nextEpMonth + 1, nextDate.getFullYear()))
-        }
-    }
-    return days = daysInBtwnARR.reduce((acc, curr) => acc += curr)
-}
 function countingFunc() {
     let called = 0
     let stringCounter 
@@ -213,7 +188,7 @@ function countingFunc() {
     let cdArr = []
     function countdown (nextEp) {
         showCountdown = setInterval(() => {
-            if(nextEp == "FINISHED") {
+            if(nextEp == "Finished") {
                 arr.push('Finished')
                 if(arr.length == called) {
                     displayTime(arr)
@@ -229,18 +204,13 @@ function countingFunc() {
                 }
                 return 
             }
-            const today = new Date()
-            let days = (nextEp.getDate() - today.getDate()) 
-            const totalSeconds = Math.round((nextEp - Date.now()) / 1000)
-            const totalMins = totalSeconds / 60
-            const seconds = Math.round((nextEp - Date.now()) / 1000) % 60
-            const mins =  Math.floor(totalMins) % 60
-            const hours = Math.floor(totalMins / 60) % 24
-            if(nextEp.getMonth() != today.getMonth()) {
-                days = countDaysBetweenMonths(today, nextEp)
-            }
-            
-            stringCounter = `${days}d ${hours}h ${mins < 10 ? '0' : ''}${mins}m ${seconds < 10 ? '0' : ''}${seconds}s`
+            const now = new Date().getTime()
+            const timeApart = nextEp - now
+            const days = Math.floor(timeApart / (1000 * 60 * 60 * 24))
+            const hours = Math.floor((timeApart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+            const minutes = Math.floor((timeApart % (1000 * 60 * 60)) / (1000 * 60))
+            const seconds = Math.floor((timeApart % (1000 * 60)) / 1000)
+            stringCounter = `${days}d ${hours}h ${minutes < 10 ? '0' : ''}${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`
             arr.push(stringCounter)
             if(arr.length == called) { //only call this once all values have filled the array to prevent flickering the time.
                 displayTime(arr)
@@ -281,7 +251,7 @@ function createCountdowns(arr) {
             return
         }
         const nextEp = new Date()
-        nextEp.setSeconds(item.cd)
+        nextEp.setMilliseconds(item.cd)
         timer.timesCalled()
         timer.countdown(nextEp)
     })
@@ -365,31 +335,6 @@ function updateTimes(obj) {
     })
 }
 
-function saveHistory() {
-    const season = checkSeason()
-    siteStorage.setItem(season, insertPoint.innerHTML)
-}
-
-//this needs a re-write to work with the dynamic enpoints of the server's GET params. need a way of caching tv, movies, OVA, ONAs seperately 
-//or it might be redundant
-function checkCache(key) {
-    if(siteStorage.hasOwnProperty(key)) {
-        insertPoint.insertAdjacentHTML('beforeend', siteStorage.getItem(key))
-        const times = fetch('/timers')
-            .then(function(resp) {
-                return resp.json()
-            })
-            Promise.resolve(times)
-                .then(function (val){
-                    console.log(val)
-                    updateTimes(val)
-                })
-        saveHistory()
-       return true
-    }
-    return false
-}
-
 function checkSeason(season, year, position) {
     const seasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL']
     if(season && year) {
@@ -406,7 +351,6 @@ function checkSeason(season, year, position) {
         }
         return `${seasons[ind]}-${year}`
     }
-
     let now = new Date()
     const thisMonth = now.getMonth()
     const thisYear = now.getFullYear()
