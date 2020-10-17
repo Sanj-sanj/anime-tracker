@@ -1,0 +1,202 @@
+const revealDescription = toggleDesc()
+
+function getInfo() {
+    const id = localStorage.getItem('id')
+    let value
+    let res = fetch(`/anime/${id}`)
+    .then(res => {
+        return res.json()
+    })
+    Promise.resolve(res)
+        .then(function (val) {
+            value = val
+            makeArrMethodsAvail(val)
+        })
+}
+getInfo()
+
+function makeArrMethodsAvail(arr) {
+    arr.media.forEach(v => {
+        let items = { 
+            score: v.meanScore || '?',
+            banner: v.bannerImage,
+            poster: v.coverImage.large,
+            description: v.description || '<i>No synopsis provided</i>',
+            episodes: v.episodes || '?',
+            duration: v.duration || '?',
+            links: v.externalLinks,
+            format: v.format || 'N/A',
+            genres: v.genres,
+            hashtag: v.hashtag,
+            nextEp: v.nextAiringEpisode,
+            popularity: v.popularity,
+            relations: v.relations,
+            season: v.season,
+            siteUrl: v.siteUrl,
+            source: v.source || 'N/A',
+            start: v.startDate,
+            status: v.status,
+            stream: v.streamingEpisodes,
+            studio: v.studios.nodes.find(el => el.isAnimationStudio) || 'N/A',
+            synonym: v.synonyms,
+            tags: v.tags,
+            title: v.title,
+            trailer: v.trailer
+        }
+        build(items)
+        addFunctionality()
+        createCountdowns(null, items.nextEp.timeUntilAiring)
+    })
+}
+
+function addFunctionality() {
+    const description = document.querySelector('.anime-description')
+    const toggleBox = document.querySelector('.toggle-text')
+    document.querySelectorAll('.btn-show-txt').forEach(btn => btn.addEventListener('click', revealDescription.toggleView))
+    if(description.clientHeight >= 200) {
+        description.classList.add('collapsed')
+        description.classList.remove('mb-3')
+        toggleBox.classList.remove('hidden')
+    }
+}
+
+function toggleDesc() {
+    let toggle = false
+    function toggleView(e) {
+        const description = document.querySelector('.anime-description')
+        if(toggle) {
+            e.target.classList.add('hidden')       
+            e.target.previousElementSibling.classList.remove('hidden')
+            description.classList.add('collapsed')
+            return toggle = false
+        }
+        e.target.classList.add('hidden')
+        e.target.nextElementSibling.classList.remove('hidden')
+        description.classList.remove('collapsed')
+        return toggle = true
+    }
+    return {toggleView}
+}
+
+let externals = [{["Twitter"]: 'twt_ico'}, {["Crunchyroll"]: 'crn_ico'}, {["VRV"]: 'vrv_ico'}, {['Funimation']: 'funi_ico'}, {['Hulu']: 'hulu_ico'}, {['Youtube']: 'ytb_ico'}, {['AnimeLab']: 'alab_ico'}, {['Hidive']: 'hidive_ico'}]
+
+function formatDate(year, month, day) {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${months[month - 1] ?? ''} ${day || ''} ${year || ''}`
+}
+
+function build(res) {
+const banner = document.querySelector('.title-banner').src = res.banner || 'imgs/d_banner.png'
+const container = document.querySelector('.main-container')
+const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
+    let template = `
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">${res.title.romaji}</h2>
+            <h6 class="card-subtitle mb-2 text-muted mb-2">${res.title.english || res.title.romaji}</h6>
+                <div class="countdown countdown-show mb-2">${res.status == "FINISHED" ? 'Finished' : res.status == "NOT_YET_RELEASED" ? 'TBA' : res.nextEp.episode ? 'EP ' + res.nextEp.episode : '' } <span></span></div>
+                <div class="row row-poster-meta-info mb-3">
+                    <div class="col poster">
+                        <div class="anime-poster-area">
+                            <img class= "anime-poster" src=${res.poster} alt="${res.title.romaji}">
+                        </div>
+                        <span class="library-position border border-top-0 border-primary">
+                            Watch
+                        </span>
+                    </div>
+                    <div class="meta-tags-box col">
+                        <div class="rating-box ">
+    
+                            <div class="rating-title">Rating</div>
+                            <div class="show-rating border border-top-0 border-dark">
+                                ${res.score}
+                            </div>
+                            <div class="premiered">
+                                    Premiere : ${dateFormatted}
+                            </div>
+                            <div class="synonym">${res.synonym.find(el => el.length < 30) || ''}</div>
+                            <div class="studio">${res.studio == 'N/A' ? 'No information' : res.studio.name}</div>
+    
+                            <div class="tags">
+                                <ul class="genres">${res.genres.map(genre => `<li>${genre}</li>`).join(' ')}
+                                </ul>
+                            </div>
+    
+                        </div>                            
+                    </div>
+                    
+                </div>
+                <div class="row meta-info mb-2 border-top border-bottom">
+                    <div class="info-box">
+                        <div class="info-label">Format</div>
+                        <div class="info-value">${res.format.split('_').map(v => v.charAt(0) + v.slice(1).toLowerCase()).join(' ')}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">Source</div>
+                        <div class="info-value">${res.source.split('_').map(v => v.charAt(0) + v.slice(1).toLowerCase()).join(' ')}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">Episodes</div>
+                        <div class="info-value">${res.episodes}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">Run time</div>
+                        <div class="info-value">${res.duration} min</div>
+                    </div>
+                    
+                </div>
+                <div class="row show-info-bottom">
+                    <div class="col anime-description-box">
+    
+                        
+                        <div class=" anime-description mb-3">
+                            ${res.description}
+                        </div>
+                        
+                        <div class="toggle-text mb-3 hidden">
+                            <button class="btn btn-sm btn-show-txt">SHOW MORE</button>
+                            <button class="btn btn-sm btn-show-txt hidden">SHOW LESS</button>
+                        </div>
+    
+                        <div class="trailer-box border-top border-bottom mb-3">
+                            <h4 class="card-title trailer-header">
+                                Trailer
+                            </h4>
+                            <div class="yt-prev">
+                                ${res.trailer ? 
+                                    `<a href="${res.trailer.site == 'youtube' ? `https://www.youtube.com/watch?v=${res.trailer.id}` : '' }"><img class="yt-thumb" src="${res.trailer.thumbnail ? res.trailer.thumbnail : ''}" alt="Trailer for ${res.title.romaji}"></img></a>` :
+                                    'No trailer found.'
+                                }
+                            </div>
+                        </div>
+    
+                        <div class="external-links">
+                            <h5 class="card-title external-links-title">
+                                External links
+                            </h5>
+                            <ul class="links-section">
+                            ${res.links ? 
+                                `${res.links.map(link => {
+                                    let found
+                                    externals.forEach(entry => {entry.hasOwnProperty(link.site) == true ? found = entry : false})
+                                    if(found) {
+                                        return `<li><a class="${found[link.site]}" href="${link.url}"></a></li>`
+                                    }
+                                }).join(' ')}` :
+                            '' }
+                            </ul>
+                        </div>
+    
+                    </div>
+    
+    
+                </div>
+    
+        </div>
+    
+    </div>
+    `
+    container.insertAdjacentHTML('afterbegin', template)
+}
+

@@ -3,6 +3,7 @@ const server = express()
 const port = process.env.PORT || 3001;
 const graphQL = require('./graphql.js');
 const thisQuery = require('./query.js')
+const path = require('path')
 
 
 server.get('/', (req, res) =>{
@@ -10,13 +11,36 @@ server.get('/', (req, res) =>{
     res.sendFile(__dirname, 'index.html')
     // res.status(200).json({data: 'data'})
 })
+server.get('/show', (req, res) => {
+    console.log(__dirname + '\\public')
+    res.sendFile(__dirname + '/public/show.html')
+    // res.sendFile(__dirname, 'show.html')
+})
 
-
+server.get('/anime/:id', (req, res) => {
+    console.log(req.params.id)
+    
+    var variables = {
+        id: req.params.id,
+    };
+    module.exports = {variables}
+    let info
+    async function request() {
+        await graphQL.getInfo(thisQuery.queryMain)
+            .then(data => {
+                res.status(200).json(data)
+                return info = data
+            })
+    }
+    request()
+    // console.log(info.pageInfo)
+    return info
+})
 
 
 server.get( '/main/:season/:format?' ,async (req, res) => {
     var variables = {
-        // id: 103713,
+        // id: 112124,
         isAdult: false,
         page: 1,
         perPage: 50,
@@ -26,7 +50,6 @@ server.get( '/main/:season/:format?' ,async (req, res) => {
     
     };
     module.exports = {variables}
-
     let {season, format} = req.params
     console.log(season, format)
 
@@ -50,6 +73,8 @@ server.get( '/main/:season/:format?' ,async (req, res) => {
     console.log(info.pageInfo)
     return info
 })
+
+
 
 server.get('/timers/:season/:format?', async(req, res) => {
     let variables = {

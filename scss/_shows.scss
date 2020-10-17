@@ -1,0 +1,145 @@
+.banner-area {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.title-banner {
+    width: 100%;   
+}
+.countdown-show {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    position: relative;
+    padding: .2em;
+    font-size: 27px;
+    background-color: #007cde;
+}
+.countdown-show>span {
+    font-size: 22px;
+    padding-left: 1em;
+}
+.col-8.meta-box{
+    padding-left: 0;
+}
+.row-poster-meta-info {
+    padding-top: 1em;
+    // align-items: center;
+}
+
+// .anime-poster-area {
+//     display: flex;
+//     justify-content: center;
+// }
+.anime-poster {
+    // width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+.library-position {
+    padding: 0 1em;
+}
+.rating-title {
+    font-size: 1.3em;
+    font-weight: 700;
+}
+.show-rating {
+    display: inline-block;
+    padding: 0 1em .25em 1em;
+    font-size: 2em;
+}
+
+.premiered {
+    margin-bottom: .5em;
+}
+.tags>.genres{
+    list-style: none;
+    padding-left: 0;
+}
+.synonym {
+    font-weight: 500;
+}
+.studio {
+    font-size: 1.4em;
+    font-weight: 700;
+}
+.meta-info {
+    margin-bottom: 1rem !important;
+    margin: .5rem 1rem .5rem 1rem     !important;
+    font-size: smaller;
+    padding: .25em 1em;
+}
+.show-info-bottom {
+    margin-top: 1rem        !important;
+    margin-left: 0           !important;
+    margin-right: 0           !important;
+}
+.anime-description-box {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.collapsed {
+    height: 12rem;
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    overflow: hidden;
+}
+.trailer-box {
+    padding-top: 1em;
+    padding-bottom: 2em;
+}
+.yt-thumb {
+    width: 45%;
+    height: auto;
+}
+.links-section{
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: space-evenly;
+}
+.links-section>li>a {
+    width: 4rem;
+}
+.crn_ico{
+    content: url("../imgs/crunchy_icon.png");
+}
+.twt_ico{
+    content: url("../imgs/twitter_icon.png");
+}
+.vrv_ico{
+    content: url("../imgs/vrv_icon.png");
+}
+.hulu_ico{
+    content: url("../imgs/hulu_icon.png");
+}
+.funi_ico{
+    content: url("../imgs/funi_icon.png");
+}
+.ytb_ico{
+    content: url("../imgs/youtube_icon.webp");
+}
+.alab_ico{
+    content: url("../imgs/animelab_icon.png");
+}
+.hidive_ico{
+    content: url("../imgs/hidive_icon.png");
+}
+.hidden {
+    display: none           !important;
+}
+
+@media (max-width: 768px) { 
+    .container {
+        max-width: 100%     !important;
+    }
+    .yt-thumb {
+        width: 100%;
+        height: auto;
+    }
+}
+@media (min-width: 1200px) {
+    .banner-area {
+        z-index: 0;
+    }
+}

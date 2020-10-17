@@ -1,15 +1,11 @@
-
-const timer = countingFunc()
 const siteStorage = localStorage
 const user = siteStorage.getItem('user')    
 const spinner = document.querySelector('.spinner')
-
 const insertPoint = document.querySelector('.row-card-area')
 document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
 document.querySelectorAll('.f-choice a').forEach(link => link.addEventListener('click', changeFormat))
 const selects = document.querySelectorAll('.custom-select')
     selects.forEach(el => el.addEventListener('change', sortShows))
-let showCountdown
 
 function validateUser() {
     if(user) {
@@ -30,6 +26,8 @@ function sortShows() {
     const res = sortBy(selection[0])
     insertPoint.innerHTML = `${res.map(el => el.c.outerHTML).join(' ')}`
     setTitles(selection[1])
+    document.querySelectorAll('.btn-id').forEach(el => el.addEventListener('click', showMore))
+
 }
 
 function setTitles(string) {
@@ -138,6 +136,7 @@ function loadInfo(changeSeason, format) {
     seasonHeader.textContent = `${season.charAt(0) + season.slice(1).replace('-', ' ').toLocaleLowerCase()}`
     insertPoint.textContent = ''
     gatherAPI(season, format)
+
 }
 
 function gatherAPI(season, format) {
@@ -154,14 +153,17 @@ function gatherAPI(season, format) {
             loopInnerItems(val)
             spinner.style.display = 'none'
         })
-        return values
+    return values
 }
 function loopInnerItems(arr) {
+    console.log(arr)
     arr.media.forEach(element => {
+        console.log(element.trailer ? element.trailer.site : `n/a for ${element.title.romaji}`)
         let information = {
             title: element.title,
             format: element.format || 'N/A',
             genres: element.genres,
+            id: element.id,
             nextEpisode: element.nextAiringEpisode || 'N/A',
             prodCompany: element.studios.nodes.find(studio => studio.isAnimationStudio) || 'N/A',
             popularity: element.popularity,
@@ -181,83 +183,7 @@ function loopInnerItems(arr) {
     document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
 }
 
-function countingFunc() {
-    let called = 0
-    let stringCounter 
-    let arr = []
-    let cdArr = []
-    function countdown (nextEp) {
-        showCountdown = setInterval(() => {
-            if(nextEp == "Finished") {
-                arr.push('Finished')
-                if(arr.length == called) {
-                    displayTime(arr)
-                    arr= []
-                }
-                return
-            }
-            if(isNaN(nextEp)) { // DISPLAY RELEASED IF AIR DATE IS ALREADY PASSED
-                arr.push('No information')
-                if(arr.length == called) {
-                    displayTime(arr)
-                    arr= []
-                }
-                return 
-            }
-            const now = new Date().getTime()
-            const timeApart = nextEp - now
-            const days = Math.floor(timeApart / (1000 * 60 * 60 * 24))
-            const hours = Math.floor((timeApart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-            const minutes = Math.floor((timeApart % (1000 * 60 * 60)) / (1000 * 60))
-            const seconds = Math.floor((timeApart % (1000 * 60)) / 1000)
-            stringCounter = `${days}d ${hours}h ${minutes < 10 ? '0' : ''}${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`
-            arr.push(stringCounter)
-            if(arr.length == called) { //only call this once all values have filled the array to prevent flickering the time.
-                displayTime(arr)
-                arr = []
-                return
-            }
-        }, 1000)
-        cdArr.push(showCountdown)
-    }
-    function timesCalled() {
-        called++
-    }
-    function resetTimer(){
-        //reset the countdown for different pages YOU HAVE TO STORE EACH TIMER IN AN ARRAY TO REFRENCE IT WOOO BOY
-        cdArr.forEach(timer => clearTimeout(timer))
-        called = 0
-        cdArr = []
-        arr = []
-        return
-    }
-    function show() {
-        console.log({called, arr, cdArr})
-    }
-    return {countdown, timesCalled, resetTimer, show}
-}
-
-function displayTime(arr) {
-    const timerArea = document.querySelectorAll('.countdown')
-    timerArea.forEach(function (v, i, a) {
-        v.children[0].textContent = `${ arr[i]}`
-    })
-}
-function createCountdowns(arr) {
-    arr.forEach(item => {
-        if(!Number(item.cd)) {
-            timer.timesCalled()
-            timer.countdown(item.cd)
-            return
-        }
-        const nextEp = new Date()
-        nextEp.setMilliseconds(item.cd)
-        timer.timesCalled()
-        timer.countdown(nextEp)
-    })
-}
-
-function handleTime(obj, obj2) {
+function formatNextEpisodeDate(obj, obj2) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     if(obj2 == "FINISHED") {
@@ -275,7 +201,7 @@ function handleTime(obj, obj2) {
 
 //do something with the links at the bottom
 function buildCard(obj){
-    const episodeDate = handleTime(obj.nextEpisode, obj.status)
+    const episodeDate = formatNextEpisodeDate(obj.nextEpisode, obj.status)
     let template = `
     <div class="card anime-card mb-3 col-md-4 col-xl-3">
 
@@ -291,8 +217,11 @@ function buildCard(obj){
             <time class="countdown">${obj.nextEpisode.episode ? 'Ep ' + obj.nextEpisode.episode : ''} <span></span></time> 
             <img class="card-img-top anime-cover-image" src="${obj.coverImage.large}" alt="${obj.title.english ? obj.title.english : obj.title.romaji}" srcset="">
             <div class="format">
-                <div class="format-text-area">${obj.format.replace("_", ' ') || 'Anime'}</div>
-            </div>
+                <div class="format-text-area">📺 ${obj.format.replace("_", ' ') || 'Anime'}</div>
+                </div>
+                <div class="rating">
+                <div class="rating-text-area">⭐ ${(obj.score /10).toFixed(1) || ''}</div>
+                </div>
         </div>
         <div class="row no-gutters row-anime-info">
             <div class="anime-info col border-top border-left">
@@ -313,9 +242,15 @@ function buildCard(obj){
         </div>
     </div>
     <ul class="links icons">
-        <ul class="icon">1</ul>
-        <ul class="icon">2</ul>
-        <ul class="icon">3</ul>
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-success">Watching</button>
+        </li>
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-warning">Considering</button>
+        </li>
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-info btn-id" data-id="${obj.id}">More info</button>
+        </li>
     </ul>
     </div>
     `
@@ -327,7 +262,7 @@ function updateTimes(obj) {
     let dateDOMLocation = document.querySelectorAll('.list-group-item.date')
     obj.media.forEach((element, i, arr) => {
         try {
-            const episodeDate = handleTime(element.nextAiringEpisode)
+            const episodeDate = formatNextEpisodeDate(element.nextAiringEpisode)
             dateDOMLocation[i].textContent = episodeDate
         } catch(error) {
             console.log(error, {element})
@@ -357,4 +292,10 @@ function checkSeason(season, year, position) {
     let seasonAsInt = Math.round(thisMonth / 3)
     seasonAsInt == 4 ? seasonAsInt = 0 : seasonAsInt
     return `${seasons[seasonAsInt]}-${thisYear}`
+}
+
+function showMore(e){
+    const id = e.target.dataset.id
+    localStorage.setItem('id', id)
+    window.location.href = '/show'
 }
