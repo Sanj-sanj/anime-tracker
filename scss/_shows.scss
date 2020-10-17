@@ -24,15 +24,9 @@
 }
 .row-poster-meta-info {
     padding-top: 1em;
-    // align-items: center;
 }
 
-// .anime-poster-area {
-//     display: flex;
-//     justify-content: center;
-// }
 .anime-poster {
-    // width: 100%;
     max-width: 100%;
     height: auto;
 }
@@ -83,6 +77,10 @@
     mask-image: linear-gradient(to bottom, #000 60%, transparent);
     -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
     overflow: hidden;
+}
+.btn-show-txt {
+    color: #007cde;
+    font-weight: 500;
 }
 .trailer-box {
     padding-top: 1em;
