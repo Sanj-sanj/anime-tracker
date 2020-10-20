@@ -2,8 +2,6 @@ const revealDescription = toggleDesc()
 let hBox = hoverBoxWrapper()
 document.querySelector('.navbar-text>a').addEventListener('click', makeKey) 
 
-console.log(localStorage.getItem('prev'))
-
 function setLeaveTimer() {
 
     let now = new Date()
@@ -63,7 +61,6 @@ function makeArrMethodsAvail(arr) {
             title: v.title,
             trailer: v.trailer
         }
-        console.log(items)
         build(items)
         addFunctionality()
         items.nextEp ? createCountdowns(null, items.nextEp.timeUntilAiring) : false
@@ -153,7 +150,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                 <div class="row row-poster-meta-info mb-3">
                     <div class="col poster">
                         <div class="anime-poster-area">
-                            <img class= "anime-poster" src=${res.poster} alt="${res.title.romaji}">
+                            <img class= "anime-poster border border-dark" src=${res.poster} alt="${res.title.romaji}">
                         </div>
                         <span class="library-position border border-top-0 border-primary">
                             Watch
@@ -221,7 +218,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                                 <ul class="tags-section">
                                     ${res.tags ?
                                         res.tags.map(tag => {
-                                            if(tag.isGeneralSpoiler) {
+                                            if(tag.isGeneralSpoiler || tag.isAdult) {
                                                 return ''
                                             }
                                             return `<li class="tag" title="${tag.description}">${tag.name}</li>`
