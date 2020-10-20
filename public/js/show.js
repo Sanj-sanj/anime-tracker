@@ -81,31 +81,36 @@ function addFunctionality() {
 }
 
 function hoverBoxWrapper() {
+    const timeouts = []
     function mobileHoverBox() {
-        const prev = document.querySelector('.hover-box')
+        const prev = document.querySelector('.hover-container')
         if(prev) {
-            dBox(prev)
+            dBox()
         }
         const container = document.createElement('div')
             container.className = 'hover-container'
         const box = document.createElement('div')
-            box.className = 'hover-box'
+            box.className = 'alert alert-info'
             box.textContent = this.title
         container.appendChild(box)
         this.appendChild(container)
         setTimeout(createRemove, 100)
     }
     function createRemove() {
-        document.addEventListener('click', dBox)
+        const tOut = setTimeout(dBox, 5000)
+        window.self.addEventListener('click', dBox)
+        timeouts.push(tOut)
     }
-    function dBox(box) {
-        const prev = document.querySelector('.hover-box')
-        document.removeEventListener('click', dBox)
+    function dBox() {
+        clearTimeout(timeouts[0])
+        timeouts.shift()
+        window.self.removeEventListener('click', dBox)
+        const prev = document.querySelector('.hover-container')
         prev.remove()
     }
     return {mobileHoverBox}
-
 }
+
 function toggleDesc() {
     let toggle = false
     function toggleView(e) {
@@ -166,7 +171,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                             <div class="premiered small">
                                     Premiere : ${dateFormatted}
                             </div>
-                            <div class="synonym">${res.synonym.find(el => el.length < 30) || ''}</div>
+                            <div class="synonym">${ `<i>${res.synonym.find(el => el.length < 30) || ''}</i>`}</div>
                             <div class="studio">${res.studio == 'N/A' ? 'No information' : res.studio.name}</div>
     
                             <div class="tags">

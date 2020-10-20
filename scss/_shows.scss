@@ -154,14 +154,7 @@ li.tag{
     display: flex;
     justify-content: center;
 }
-.hover-box {
-    width: fit-content;
-    background-color: #404040;
-    // position: absolute;
-    color: #e2e2e2;
-    padding: .3em 1rem;
-    // left: 0;
-}
+
 
 @media (max-width: 768px) { 
     .container {
