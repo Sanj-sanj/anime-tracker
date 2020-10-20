@@ -210,7 +210,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                             <button class="btn btn-sm btn-show-txt hidden">SHOW LESS</button>
                         </div>
 
-                        <div class="border-top">
+                        <div class="border-top theme-container">
                             <h4 class="card-title">
                             Themes:
                             </h4>

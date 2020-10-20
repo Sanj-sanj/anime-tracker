@@ -89,9 +89,15 @@
     color: #007cde          !important;
     font-weight: 500            !important;
 }
+.theme-container {
+    padding-top: 1em;
+}
 .tags-section {
     padding: 0;
     list-style: none;
+}
+li.tag{
+    color: #007cde
 }
 
 .trailer-box {
