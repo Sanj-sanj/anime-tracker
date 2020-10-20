@@ -10,6 +10,22 @@ const selects = document.querySelectorAll('.custom-select')
 function validateUser() {
     if(user) {
         console.log('welcome')
+        const now = new Date()
+        let key = localStorage.getItem('key')
+        let key2 = localStorage.getItem('prev')
+        let a = now.getSeconds()
+        let b = now.getMinutes()
+        b = (b * 60) + a 
+        if(key && key2) {
+            if(key == 'override') {
+                return keyClean()
+            }
+            if(key >= b) {
+                return keyClean()
+            }
+            localStorage.removeItem('prev')
+            localStorage.removeItem('key')
+        }
         return loadInfo()
     }
     else {
@@ -17,17 +33,149 @@ function validateUser() {
         console.log('No user')
     }
 }
+
+function keyClean(){
+    console.log('cleaned')
+    let temp = localStorage.getItem('prev')
+    temp = JSON.parse(temp)
+    localStorage.removeItem('prev')
+    localStorage.removeItem('key')
+    localStorage.removeItem('id')
+    changeFormatHeaderFromCache(temp.format)
+    return loadInfo(temp.season, temp.format)
+}
 validateUser()
 
+function loadInfo(diffSeason, diffFormat) {
+    //put this on the top navbar area
+    // const newShows = document.querySelector('.anime-avail-bar')
+    // newShows.textContent = `Welcome ${user}!`
+    const seasonHeader = document.querySelector('.anime-season-header')
+    const season = diffSeason || checkSeason()
+    const format = diffFormat || checkFormat()
+    seasonHeader.textContent = `${season.charAt(0) + season.slice(1).replace('-', ' ').toLocaleLowerCase()}`
+    insertPoint.textContent = ''
+    gatherAPI(season, format)
+}
+
+function gatherAPI(season, format) {
+    console.log('calling api')
+    let values 
+    spinner.style.display = 'inherit'
+    let res = fetch(`/main/${season}/${format == null ? '' : format}`)
+    .then(function(resp) {
+        return resp.json()
+    })
+    Promise.resolve(res)
+        .then(function (val){
+            values = val
+            loopInnerItems(val)
+            spinner.style.display = 'none'
+        })
+    return values
+}
+function loopInnerItems(arr) {
+    arr.media.forEach(element => {
+        // console.log(element.trailer ? element.trailer.site : `n/a for ${element.title.romaji}`)
+        let information = {
+            title: element.title,
+            format: element.format || 'N/A',
+            genres: element.genres,
+            id: element.id,
+            nextEpisode: element.nextAiringEpisode || 'N/A',
+            prodCompany: element.studios.nodes.find(studio => studio.isAnimationStudio) || 'N/A',
+            popularity: element.popularity,
+            score: element.meanScore,
+            source: element.source || 'N/A',
+            status: element.status || 'N/A',
+            startDate: element.startDate || null,
+            episodes: element.episodes,
+            duration: element.duration,
+            description: element.description,
+            coverImage: element.coverImage,
+            officialSite: element.externalLinks.find(link => link.site =='Official Site') || '#'
+        }
+        buildCard(information)  
+    });
+    sortShows()
+    document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
+}
 
 function sortShows() {
     let selection = [];
     selects.forEach((el) => selection.push(el.value))
+    
     const res = sortBy(selection[0])
     insertPoint.innerHTML = `${res.map(el => el.c.outerHTML).join(' ')}`
     setTitles(selection[1])
+    setWatchState() 
     document.querySelectorAll('.btn-id').forEach(el => el.addEventListener('click', showMore))
+}
 
+function buildCard(obj){
+    const episodeDate = formatNextEpisodeDate(obj.nextEpisode, obj.status)
+    let template = `
+    <div class="card anime-card mb-3 col-md-4 col-xl-3 data-watch="${'true'}"">
+
+        <h5 class="anime-title" data-rom="${obj.title.romaji ? obj.title.romaji : obj.title.english}" data-en="${obj.title.english ? obj.title.english : obj.title.romaji}">
+            <a class="main-title" href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji} </a>
+        </h5>
+        <ol class="anime-genre">
+            ${obj.genres.length >= 1 ? obj.genres.map((v,i,a) => `<li class="text-muted">${v}</li>`).join(' ') : '<li class="text-muted">No information</li>'}
+        </ol>
+
+    <div class="contents">
+        <div class="col img-spot">
+            <time class="countdown">${obj.nextEpisode.episode ? 'Ep ' + obj.nextEpisode.episode : ''} <span></span></time> 
+            <img class="card-img-top anime-cover-image" src="${obj.coverImage.large}" alt="${obj.title.english ? obj.title.english : obj.title.romaji}" srcset="">
+            <div class="format">
+                <div class="format-text-area">📺 ${obj.format.replace("_", ' ') || 'Anime'}</div>
+                </div>
+                <div class="rating">
+                <div class="rating-text-area">⭐ ${obj.score ? (obj.score /10).toFixed(1) : '?'}</div>
+                </div>
+        </div>
+        <div class="row no-gutters row-anime-info">
+            <div class="anime-info col border-top border-left">
+                <div class="meta-container" data-popularity='${obj.popularity}' data-score='${obj.score}' data-cd='${obj.nextEpisode.timeUntilAiring || obj.status}' data-start='${obj.startDate.year}, ${obj.startDate.month - 1}, ${obj.startDate.day}' ">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item company">${obj.prodCompany.name || 'No information'}</li>
+                        <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished' : episodeDate}</li>
+                        <li class="list-group-item meta-data">
+                            <div class="source">${obj.source.replace('_',' ')}</div>
+                            <div class="episodes">${obj.episodes ? obj.episodes : '12?'} x ${obj.duration ? obj.duration + ' min' : '24 min?'}</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="anime-description">
+                    ${obj.description || 'No synopsis has been added yet.'}
+                </div>
+            </div>
+        </div>
+    </div>
+    <ul class="links icons">
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-success">Watching</button>
+        </li>
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-warning">Considering</button>
+        </li>
+        <li class="icon">
+            <button class="btn btn-sm btn-outline-info btn-id" data-id="${obj.id}">More info</button>
+        </li>
+    </ul>
+    </div>
+    `
+    insertPoint.insertAdjacentHTML('beforeend', template)
+}
+
+
+function setWatchState() {
+    const cards =document.querySelectorAll('.card')
+    cards.forEach(card =>{
+        // console.log(card)
+    })
+    // console.log(cards)
 }
 
 function setTitles(string) {
@@ -104,7 +252,7 @@ function sortBy(string) {
         }).concat(noDate)
     }
     timer.resetTimer()
-    createCountdowns(sorted)
+    createCountdowns(sorted) //calcjs
     return sorted
 }
 
@@ -116,6 +264,10 @@ function changeFormat(e) {
     timer.resetTimer()
     loadInfo(currSeason, format)
 }
+function changeFormatHeaderFromCache(format) {
+    document.querySelector('.f-choice.active').classList.remove('active')
+    document.querySelectorAll('.f-choice>a').forEach(tag => tag.dataset.format == format ? tag.parentNode.classList.add('active') : false )
+} 
 
 function changeSeason(e){
     e.preventDefault()
@@ -125,62 +277,6 @@ function changeSeason(e){
     const season = checkSeason(...currSeason, change)
     timer.resetTimer()
     loadInfo(season, format)
-}
-
-function loadInfo(changeSeason, format) {
-    //put this on the top navbar area
-    // const newShows = document.querySelector('.anime-avail-bar')
-    // newShows.textContent = `Welcome ${user}!`
-    const seasonHeader = document.querySelector('.anime-season-header')
-    const season = changeSeason || checkSeason()
-    seasonHeader.textContent = `${season.charAt(0) + season.slice(1).replace('-', ' ').toLocaleLowerCase()}`
-    insertPoint.textContent = ''
-    gatherAPI(season, format)
-
-}
-
-function gatherAPI(season, format) {
-    console.log('calling api')
-    let values 
-    spinner.style.display = 'inherit'
-    let res = fetch(`/main/${season}/${format == null ? '' : format}`)
-    .then(function(resp) {
-        return resp.json()
-    })
-    Promise.resolve(res)
-        .then(function (val){
-            values = val
-            loopInnerItems(val)
-            spinner.style.display = 'none'
-        })
-    return values
-}
-function loopInnerItems(arr) {
-    console.log(arr)
-    arr.media.forEach(element => {
-        console.log(element.trailer ? element.trailer.site : `n/a for ${element.title.romaji}`)
-        let information = {
-            title: element.title,
-            format: element.format || 'N/A',
-            genres: element.genres,
-            id: element.id,
-            nextEpisode: element.nextAiringEpisode || 'N/A',
-            prodCompany: element.studios.nodes.find(studio => studio.isAnimationStudio) || 'N/A',
-            popularity: element.popularity,
-            score: element.meanScore,
-            source: element.source || 'N/A',
-            status: element.status || 'N/A',
-            startDate: element.startDate || null,
-            episodes: element.episodes,
-            duration: element.duration,
-            description: element.description,
-            coverImage: element.coverImage,
-            officialSite: element.externalLinks.find(link => link.site =='Official Site') || '#'
-        }
-        buildCard(information)  
-    });
-    sortShows()
-    document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
 }
 
 function formatNextEpisodeDate(obj, obj2) {
@@ -197,77 +293,6 @@ function formatNextEpisodeDate(obj, obj2) {
     let nextEpMinsRounded = Math.ceil(nextEpDate.getMinutes() / nextEpDate.getMinutes() + nextEpDate.getMinutes()).toFixed(1)
         nextEpMinsRounded.replace('.', '')
     return `${days[nextEpDate.getDay()]} ${months[nextEpDate.getMonth()]} ${nextEpDate.getDate()} ${nextEpDate.getFullYear()} ${nextEpDate.getHours()}:${nextEpDate.getMinutes() < 10 ? '0' + nextEpDate.getMinutes() : nextEpDate.getMinutes()} `
-}
-
-//do something with the links at the bottom
-function buildCard(obj){
-    const episodeDate = formatNextEpisodeDate(obj.nextEpisode, obj.status)
-    let template = `
-    <div class="card anime-card mb-3 col-md-4 col-xl-3">
-
-        <h5 class="anime-title" data-rom="${obj.title.romaji ? obj.title.romaji : obj.title.english}" data-en="${obj.title.english ? obj.title.english : obj.title.romaji}">
-            <a class="main-title" href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji} </a>
-        </h5>
-        <ol class="anime-genre">
-            ${obj.genres.length >= 1 ? obj.genres.map((v,i,a) => `<li class="text-muted">${v}</li>`).join(' ') : '<li class="text-muted">No information</li>'}
-        </ol>
-
-    <div class="contents">
-        <div class="col img-spot">
-            <time class="countdown">${obj.nextEpisode.episode ? 'Ep ' + obj.nextEpisode.episode : ''} <span></span></time> 
-            <img class="card-img-top anime-cover-image" src="${obj.coverImage.large}" alt="${obj.title.english ? obj.title.english : obj.title.romaji}" srcset="">
-            <div class="format">
-                <div class="format-text-area">📺 ${obj.format.replace("_", ' ') || 'Anime'}</div>
-                </div>
-                <div class="rating">
-                <div class="rating-text-area">⭐ ${(obj.score /10).toFixed(1) || ''}</div>
-                </div>
-        </div>
-        <div class="row no-gutters row-anime-info">
-            <div class="anime-info col border-top border-left">
-                <div class="meta-container" data-popularity='${obj.popularity}' data-score='${obj.score}' data-cd='${obj.nextEpisode.timeUntilAiring || obj.status}' data-start='${obj.startDate.year}, ${obj.startDate.month - 1}, ${obj.startDate.day}' ">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item company">${obj.prodCompany.name || 'No information'}</li>
-                        <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished' : episodeDate}</li>
-                        <li class="list-group-item meta-data">
-                            <div class="source">${obj.source.replace('_',' ')}</div>
-                            <div class="episodes">${obj.episodes ? obj.episodes : '12?'} x ${obj.duration ? obj.duration + ' min' : '24 min?'}</div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="anime-description">
-                    ${obj.description || 'No synopsis has been added yet.'}
-                </div>
-            </div>
-        </div>
-    </div>
-    <ul class="links icons">
-        <li class="icon">
-            <button class="btn btn-sm btn-outline-success">Watching</button>
-        </li>
-        <li class="icon">
-            <button class="btn btn-sm btn-outline-warning">Considering</button>
-        </li>
-        <li class="icon">
-            <button class="btn btn-sm btn-outline-info btn-id" data-id="${obj.id}">More info</button>
-        </li>
-    </ul>
-    </div>
-    `
-    insertPoint.insertAdjacentHTML('beforeend', template)
-}
-
-//these can go in a different file soon
-function updateTimes(obj) {
-    let dateDOMLocation = document.querySelectorAll('.list-group-item.date')
-    obj.media.forEach((element, i, arr) => {
-        try {
-            const episodeDate = formatNextEpisodeDate(element.nextAiringEpisode)
-            dateDOMLocation[i].textContent = episodeDate
-        } catch(error) {
-            console.log(error, {element})
-        }
-    })
 }
 
 function checkSeason(season, year, position) {
@@ -293,9 +318,23 @@ function checkSeason(season, year, position) {
     seasonAsInt == 4 ? seasonAsInt = 0 : seasonAsInt
     return `${seasons[seasonAsInt]}-${thisYear}`
 }
+function checkFormat() {
+    let format
+    document.querySelectorAll('.f-choice').forEach(el => el.classList.contains('active') ? format = el.children[0].dataset.format : false)
+    return format
+}
+
+function saveCurrentSeason(season, format) {
+    const previous = JSON.stringify({season, format})
+    localStorage.setItem('prev', previous)
+}
 
 function showMore(e){
+    const season = document.querySelector('.anime-season-header').textContent.replace(' ', '-').toUpperCase()
+    const format = checkFormat()
+    saveCurrentSeason(season, format)
+    timer.resetTimer()
     const id = e.target.dataset.id
     localStorage.setItem('id', id)
-    window.location.href = '/show'
+    window.location.replace('/show') 
 }

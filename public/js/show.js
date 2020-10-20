@@ -1,6 +1,25 @@
 const revealDescription = toggleDesc()
+let hBox = hoverBoxWrapper()
+document.querySelector('.navbar-text>a').addEventListener('click', makeKey) 
+
+console.log(localStorage.getItem('prev'))
+
+function setLeaveTimer() {
+
+    let now = new Date()
+    let m = now.getMinutes()
+    let s = now.getSeconds()
+    m = (m * 60) + s + 60
+    key = JSON.stringify(m)
+    localStorage.setItem('key', key)
+}
+function makeKey() {
+    localStorage.setItem('key', 'override')
+}
+
 
 function getInfo() {
+    makeKey()
     const id = localStorage.getItem('id')
     let value
     let res = fetch(`/anime/${id}`)
@@ -12,6 +31,7 @@ function getInfo() {
             value = val
             makeArrMethodsAvail(val)
         })
+        setLeaveTimer()
 }
 getInfo()
 
@@ -21,7 +41,7 @@ function makeArrMethodsAvail(arr) {
             score: v.meanScore || '?',
             banner: v.bannerImage,
             poster: v.coverImage.large,
-            description: v.description || '<i>No synopsis provided</i>',
+            description: v.description || '<i>No synopsis has been provided yet.</i>',
             episodes: v.episodes || '?',
             duration: v.duration || '?',
             links: v.externalLinks,
@@ -39,13 +59,14 @@ function makeArrMethodsAvail(arr) {
             stream: v.streamingEpisodes,
             studio: v.studios.nodes.find(el => el.isAnimationStudio) || 'N/A',
             synonym: v.synonyms,
-            tags: v.tags,
+            tags: v.tags.length > 0 ? v.tags : null,
             title: v.title,
             trailer: v.trailer
         }
+        console.log(items)
         build(items)
         addFunctionality()
-        createCountdowns(null, items.nextEp.timeUntilAiring)
+        items.nextEp ? createCountdowns(null, items.nextEp.timeUntilAiring) : false
     })
 }
 
@@ -53,6 +74,8 @@ function addFunctionality() {
     const description = document.querySelector('.anime-description')
     const toggleBox = document.querySelector('.toggle-text')
     document.querySelectorAll('.btn-show-txt').forEach(btn => btn.addEventListener('click', revealDescription.toggleView))
+    document.querySelectorAll('.tags-section>li').forEach(tag => tag.addEventListener('click', hBox.mobileHoverBox))
+
     if(description.clientHeight >= 200) {
         description.classList.add('collapsed')
         description.classList.remove('mb-3')
@@ -60,6 +83,32 @@ function addFunctionality() {
     }
 }
 
+function hoverBoxWrapper() {
+    function mobileHoverBox() {
+        const prev = document.querySelector('.hover-box')
+        if(prev) {
+            dBox(prev)
+        }
+        const container = document.createElement('div')
+            container.className = 'hover-container'
+        const box = document.createElement('div')
+            box.className = 'hover-box'
+            box.textContent = this.title
+        container.appendChild(box)
+        this.appendChild(container)
+        setTimeout(createRemove, 100)
+    }
+    function createRemove() {
+        document.addEventListener('click', dBox)
+    }
+    function dBox(box) {
+        const prev = document.querySelector('.hover-box')
+        document.removeEventListener('click', dBox)
+        prev.remove()
+    }
+    return {mobileHoverBox}
+
+}
 function toggleDesc() {
     let toggle = false
     function toggleView(e) {
@@ -78,7 +127,6 @@ function toggleDesc() {
     return {toggleView}
 }
 
-let externals = [{["Twitter"]: 'twt_ico'}, {["Crunchyroll"]: 'crn_ico'}, {["VRV"]: 'vrv_ico'}, {['Funimation']: 'funi_ico'}, {['Hulu']: 'hulu_ico'}, {['Youtube']: 'ytb_ico'}, {['AnimeLab']: 'alab_ico'}, {['Hidive']: 'hidive_ico'}]
 
 function formatDate(year, month, day) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -87,15 +135,21 @@ function formatDate(year, month, day) {
 }
 
 function build(res) {
-const banner = document.querySelector('.title-banner').src = res.banner || 'imgs/d_banner.png'
+document.querySelector('.title-banner').src = res.banner || 'imgs/d_banner.png'
 const container = document.querySelector('.main-container')
+const externals = [{["Official Site"]: 'site_ico', ["Twitter"]: 'twt_ico'}, {["Crunchyroll"]: 'crn_ico'}, {["VRV"]: 'vrv_ico'}, {['Funimation']: 'funi_ico'}, {['Hulu']: 'hulu_ico'}, {['Youtube']: 'ytb_ico'}, {['AnimeLab']: 'alab_ico'}, {['Hidive']: 'hidive_ico'}]
+
 const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
     let template = `
     <div class="card">
         <div class="card-body">
             <h2 class="card-title">${res.title.romaji}</h2>
             <h6 class="card-subtitle mb-2 text-muted mb-2">${res.title.english || res.title.romaji}</h6>
-                <div class="countdown countdown-show mb-2">${res.status == "FINISHED" ? 'Finished' : res.status == "NOT_YET_RELEASED" ? 'TBA' : res.nextEp.episode ? 'EP ' + res.nextEp.episode : '' } <span></span></div>
+                <div class="countdown-container">
+                    <div class="countdown countdown-show mb-2">
+                    ${res.status == "FINISHED" ? 'Finished' : res.status == "NOT_YET_RELEASED" ? 'TBA' : res.nextEp.episode ? 'EP ' + res.nextEp.episode : '' } <span></span>
+                    </div>
+                </div>
                 <div class="row row-poster-meta-info mb-3">
                     <div class="col poster">
                         <div class="anime-poster-area">
@@ -112,7 +166,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                             <div class="show-rating border border-top-0 border-dark">
                                 ${res.score}
                             </div>
-                            <div class="premiered">
+                            <div class="premiered small">
                                     Premiere : ${dateFormatted}
                             </div>
                             <div class="synonym">${res.synonym.find(el => el.length < 30) || ''}</div>
@@ -158,7 +212,25 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                             <button class="btn btn-sm btn-show-txt">SHOW MORE</button>
                             <button class="btn btn-sm btn-show-txt hidden">SHOW LESS</button>
                         </div>
-    
+
+                        <div class="border-top">
+                            <h4 class="card-title">
+                            Themes:
+                            </h4>
+                            <div class="related-tags">
+                                <ul class="tags-section">
+                                    ${res.tags ?
+                                        res.tags.map(tag => {
+                                            if(tag.isGeneralSpoiler) {
+                                                return ''
+                                            }
+                                            return `<li class="tag" title="${tag.description}">${tag.name}</li>`
+                                        }).join(' ')
+                                        : 'There seems to be nothing here.'}
+                                </ul>
+                            </div>
+                        </div>
+
                         <div class="trailer-box border-top border-bottom mb-3">
                             <h4 class="card-title trailer-header">
                                 Trailer
@@ -179,12 +251,12 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                             ${res.links ? 
                                 `${res.links.map(link => {
                                     let found
-                                    externals.forEach(entry => {entry.hasOwnProperty(link.site) == true ? found = entry : false})
+                                    externals.forEach(entry => entry.hasOwnProperty(link.site) == true ? found = entry : false)
                                     if(found) {
-                                        return `<li><a class="${found[link.site]}" href="${link.url}"></a></li>`
+                                        return `<li><a class="${found[link.site]}" title="${link.site}" href="${link.url}"></a></li>`
                                     }
                                 }).join(' ')}` :
-                            '' }
+                            'No links found.' }
                             </ul>
                         </div>
     
@@ -197,6 +269,6 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
     
     </div>
     `
-    container.insertAdjacentHTML('afterbegin', template)
+    container.insertAdjacentHTML('beforeend', template)
 }
 

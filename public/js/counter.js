@@ -20,7 +20,7 @@ function countingFunc() {
                 arr.push('No information')
                 if(arr.length == called) {
                     displayTime(arr)
-                    arr= []
+                    arr = []
                 }
                 return 
             }

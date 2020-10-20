@@ -6,6 +6,10 @@
 .title-banner {
     width: 100%;   
 }
+.countdown-container {
+    display: inline-flex;
+    width: 45%;
+}
 .countdown-show {
     display: flex;
     justify-content: center;
@@ -72,6 +76,9 @@
     padding-left: 1rem;
     padding-right: 1rem;
 }
+.anime-description-box>.anime-description {
+    line-height: 2;
+}
 .collapsed {
     height: 12rem;
     mask-image: linear-gradient(to bottom, #000 60%, transparent);
@@ -79,9 +86,14 @@
     overflow: hidden;
 }
 .btn-show-txt {
-    color: #007cde;
-    font-weight: 500;
+    color: #007cde          !important;
+    font-weight: 500            !important;
 }
+.tags-section {
+    padding: 0;
+    list-style: none;
+}
+
 .trailer-box {
     padding-top: 1em;
     padding-bottom: 2em;
@@ -123,13 +135,34 @@
 .hidive_ico{
     content: url("../imgs/hidive_icon.png");
 }
+.site_ico{
+    content: url("../imgs/site_icon.jpg");
+}
+.site2_ico{
+    content: url("../imgs/site2_icon.png");
+}
 .hidden {
     display: none           !important;
+}
+.hover-container {
+    display: flex;
+    justify-content: center;
+}
+.hover-box {
+    width: fit-content;
+    background-color: #404040;
+    // position: absolute;
+    color: #e2e2e2;
+    padding: .3em 1rem;
+    // left: 0;
 }
 
 @media (max-width: 768px) { 
     .container {
         max-width: 100%     !important;
+    }
+    .countdown-container {
+        width: 100%;
     }
     .yt-thumb {
         width: 100%;
