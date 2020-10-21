@@ -61,6 +61,10 @@ function makeArrMethodsAvail(arr) {
             title: v.title,
             trailer: v.trailer
         }
+        items.tags.forEach(tag => {
+            tag.isMediaSpoiler ? console.log(tag) : false;
+            tag.isGeneralSpoiler ? console.log(tag) : false
+        })
         build(items)
         addFunctionality()
         items.nextEp ? createCountdowns(null, items.nextEp.timeUntilAiring) : false
@@ -223,7 +227,7 @@ const dateFormatted = formatDate(res.start.year, res.start.month, res.start.day)
                                 <ul class="tags-section">
                                     ${res.tags ?
                                         res.tags.map(tag => {
-                                            if(tag.isGeneralSpoiler || tag.isAdult) {
+                                            if(tag.isGeneralSpoiler || tag.isMediaSpoiler || tag.isAdult) {
                                                 return ''
                                             }
                                             return `<li class="tag" title="${tag.description}">${tag.name}</li>`
