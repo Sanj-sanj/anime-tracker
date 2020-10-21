@@ -1,4 +1,5 @@
 const siteStorage = localStorage
+const watching = watchState()
 const user = siteStorage.getItem('user')    
 const spinner = document.querySelector('.spinner')
 const insertPoint = document.querySelector('.row-card-area')
@@ -108,14 +109,19 @@ function sortShows() {
     const res = sortBy(selection[0])
     insertPoint.innerHTML = `${res.map(el => el.c.outerHTML).join(' ')}`
     setTitles(selection[1])
-    setWatchState() 
     document.querySelectorAll('.btn-id').forEach(el => el.addEventListener('click', showMore))
+    document.querySelectorAll('.btn-watching').forEach(el => el.addEventListener('click', watching.updateWatchState))
+    document.querySelectorAll('.btn-consider').forEach(el => el.addEventListener('click', watching.updateWatchState))
+    updateWatchStyle()
 }
+
+
+
 
 function buildCard(obj){
     const episodeDate = formatNextEpisodeDate(obj.nextEpisode, obj.status)
     let template = `
-    <div class="card anime-card mb-3 col-md-4 col-xl-3 data-watch="${'true'}"">
+    <div class="card anime-card mb-3 col-md-4 col-xl-3" data-id="${obj.id}" data-watch="${watching.getWatchStates(obj.id)}" data-consider="${watching.getConsiderState(obj.id)}" ">
 
         <h5 class="anime-title" data-rom="${obj.title.romaji ? obj.title.romaji : obj.title.english}" data-en="${obj.title.english ? obj.title.english : obj.title.romaji}">
             <a class="main-title" href="${obj.officialSite.url}">${obj.title.english ? obj.title.english : obj.title.romaji} </a>
@@ -155,13 +161,13 @@ function buildCard(obj){
     </div>
     <ul class="links icons">
         <li class="icon">
-            <button class="btn btn-sm btn-outline-success">Watching</button>
+            <button class="btn btn-sm btn-outline-success btn-watching">Watching</button>
         </li>
         <li class="icon">
-            <button class="btn btn-sm btn-outline-warning">Considering</button>
+            <button class="btn btn-sm btn-outline-warning btn-consider">Considering</button>
         </li>
         <li class="icon">
-            <button class="btn btn-sm btn-outline-info btn-id" data-id="${obj.id}">More info</button>
+            <button class="btn btn-sm btn-outline-info btn-id">More info</button>
         </li>
     </ul>
     </div>
@@ -169,13 +175,67 @@ function buildCard(obj){
     insertPoint.insertAdjacentHTML('beforeend', template)
 }
 
-
-function setWatchState() {
-    const cards =document.querySelectorAll('.card')
-    cards.forEach(card =>{
-        // console.log(card)
+function updateWatchStyle() {
+    document.querySelectorAll('[data-watch="true"][data-consider="false"]').forEach(item => {
+        item.children[0].style.background = 'linear-gradient(180deg, #ceff69, transparent)'
     })
-    // console.log(cards)
+    document.querySelectorAll('[data-consider="true"][data-watch="false"]').forEach(item => {
+        item.children[0].style.background = 'linear-gradient(180deg, #fffd0d, transparent)'
+    })
+    document.querySelectorAll('[data-watch="false"][data-consider="false"]').forEach(item => {
+        item.children[0].style.background = 'initial'
+    })
+}
+
+function watchState() {
+    let consider = localStorage.getItem('consider')
+    consider == null ? consider = [] : consider = JSON.parse(consider)
+
+    let watching = localStorage.getItem('watching')
+    watching == null ? watching = [] : watching = JSON.parse(watching)
+
+    function updateWatchState(e) {
+        const parent = this.offsetParent.dataset
+        if(this.classList.contains('btn-watching') ) {
+            consider.includes(parent.id) ?
+                (consider.splice(consider.indexOf(parent.id)), parent.consider = false) : false
+
+            watching.includes(parent.id) ? 
+                (watching.splice(watching.indexOf(parent.id), 1), parent.watch = false) :
+                (watching.push(parent.id), parent.watch = true)
+        }
+        if(this.classList.contains('btn-consider')) {
+            watching.includes(parent.id) ?
+                (watching.splice(watching.indexOf(parent.id)), parent.watch = false) : false
+                //can add a wardning message before ^ to the user to validate wether they'll go from watching to considering 
+            consider.includes(parent.id) ?
+                (consider.splice(consider.indexOf(parent.id), 1), parent.consider = false) :
+                (consider.push(parent.id), parent.consider = true)
+        }
+        updateWatchStyle()
+        saveWatching()
+    }
+
+    function getWatchStates(id) { 
+        if( watching.includes(String(id)) ){
+            return true
+        }
+        return false
+    }
+    function getConsiderState(id) {
+        if( consider.includes(String(id)) ) {
+            return true
+        }
+        return false
+    }
+    function log(){
+        console.log({watching})
+    }
+    function saveWatching() {
+        localStorage.setItem('watching', JSON.stringify(watching))
+        localStorage.setItem('consider', JSON.stringify(consider))
+    }
+    return { updateWatchState, getWatchStates, getConsiderState, log }
 }
 
 function setTitles(string) {
@@ -334,7 +394,7 @@ function showMore(e){
     const format = checkFormat()
     saveCurrentSeason(season, format)
     timer.resetTimer()
-    const id = e.target.dataset.id
+    const id = this.offsetParent.dataset.id
     localStorage.setItem('id', id)
     window.location.replace('/show') 
 }

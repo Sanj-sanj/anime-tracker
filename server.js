@@ -9,12 +9,10 @@ const path = require('path')
 server.get('/', (req, res) =>{
     console.log(req.headers["user-agent"])
     res.sendFile(__dirname, 'index.html')
-    // res.status(200).json({data: 'data'})
 })
 server.get('/show', (req, res) => {
     console.log(__dirname + '\\public')
     res.sendFile(__dirname + '/public/show.html')
-    // res.sendFile(__dirname, 'show.html')
 })
 
 server.get('/anime/:id', (req, res) => {
@@ -33,7 +31,6 @@ server.get('/anime/:id', (req, res) => {
             })
     }
     request()
-    // console.log(info.pageInfo)
     return info
 })
 
@@ -73,7 +70,6 @@ server.get( '/main/:season/:format?' ,async (req, res) => {
     console.log(info.pageInfo)
     return info
 })
-
 
 
 server.get('/timers/:season/:format?', async(req, res) => {
