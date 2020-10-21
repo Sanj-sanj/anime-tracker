@@ -177,10 +177,10 @@ function buildCard(obj){
 
 function updateWatchStyle() {
     document.querySelectorAll('[data-watch="true"][data-consider="false"]').forEach(item => {
-        item.children[0].style.background = 'linear-gradient(180deg, #ceff69, transparent)'
+        item.children[0].style.background = 'linear-gradient(180deg, #ceff69, white)'
     })
     document.querySelectorAll('[data-consider="true"][data-watch="false"]').forEach(item => {
-        item.children[0].style.background = 'linear-gradient(180deg, #fffd0d, transparent)'
+        item.children[0].style.background = 'linear-gradient(180deg, #fffd0d, white)'
     })
     document.querySelectorAll('[data-watch="false"][data-consider="false"]').forEach(item => {
         item.children[0].style.background = 'initial'
