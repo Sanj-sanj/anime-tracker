@@ -61,10 +61,6 @@ function makeArrMethodsAvail(arr) {
             title: v.title,
             trailer: v.trailer
         }
-        items.tags.forEach(tag => {
-            tag.isMediaSpoiler ? console.log(tag) : false;
-            tag.isGeneralSpoiler ? console.log(tag) : false
-        })
         build(items)
         addFunctionality()
         items.nextEp ? createCountdowns(null, items.nextEp.timeUntilAiring) : false
