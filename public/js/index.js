@@ -143,7 +143,7 @@ function buildCard(obj){
         </div>
         <div class="row no-gutters row-anime-info">
             <div class="anime-info col border-top border-left">
-                <div class="meta-container" data-popularity='${obj.popularity}' data-score='${obj.score}' data-cd='${obj.nextEpisode.timeUntilAiring || obj.status}' data-start='${obj.startDate.year}, ${obj.startDate.month - 1}, ${obj.startDate.day}' ">
+                <div class="meta-container" data-popularity='${obj.popularity}' data-score='${obj.score}' data-cd='${obj.nextEpisode.timeUntilAiring || obj.status}' data-start='${obj.startDate.year} ${obj.startDate.month - 1} ${obj.startDate.day}' ">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item company">${obj.prodCompany.name || 'No information'}</li>
                         <li class="list-group-item date">${obj.status == "FINISHED" ? 'Finished' : episodeDate}</li>
@@ -298,25 +298,32 @@ function sortBy(string) {
     if(string == 'air-date') {
         const noDate = []
         scoreCard.forEach((card, i) => {
-            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' : (new Date(card.children[0].children[1].textContent))
             const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now()) 
-            const d = new Date(card.dataset.start)
+            const date = card.dataset.start.split(' ')
+            //cant just do new Date(card.dataset.start) else it fails on mobile? WHY?! but making an array and passing the values seperately is fine... WHY?!
+            const d = new Date(date[0], date[1], date[2])
             const c = cards[i]
             if(d == 'Invalid Date') {
                 return noDate.push({c, d, cd})
             }
             sorted.push({c, d, cd})
         })
+        // alert(noDate[0].c.children[0].textContent)
+        // alert(noDate[0].d)
+        console.log(sorted)
         sorted = sorted.sort(function (a, b) {
             return a.d - b.d
         }).concat(noDate)
+        // sorted = sorted.concat(noDate)
     }
+    
     if(string == 'user-shows') {
         let myShows = []
         const considering = []
         const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
         scoreCard.forEach((card, i) => {
-            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' : (new Date(card.children[0].children[1].textContent))
             const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now()) 
             const c = cards[i]
             if(c.dataset.watch == 'true') {
