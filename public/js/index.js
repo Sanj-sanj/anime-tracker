@@ -177,7 +177,7 @@ function buildCard(obj){
 
 function updateWatchStyle() {
     document.querySelectorAll('[data-watch="true"][data-consider="false"]').forEach(item => {
-        item.children[0].style.background = 'linear-gradient(180deg, #ceff69, white)'
+        item.children[0].style.background = 'linear-gradient(180deg, #9dff4a, white)'
     })
     document.querySelectorAll('[data-consider="true"][data-watch="false"]').forEach(item => {
         item.children[0].style.background = 'linear-gradient(180deg, #fffd0d, white)'
@@ -260,7 +260,7 @@ function sortBy(string) {
             const c = cards[i]
             sorted.push({c, p, cd})
         })
-        sorted = sorted.sort(function (a, b) {
+        sorted.sort(function (a, b) {
             return b.p - a.p
         })
     }
@@ -310,6 +310,36 @@ function sortBy(string) {
         sorted = sorted.sort(function (a, b) {
             return a.d - b.d
         }).concat(noDate)
+    }
+    if(string == 'user-shows') {
+        let myShows = []
+        const considering = []
+        const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
+        scoreCard.forEach((card, i) => {
+            const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' :(new Date(card.children[0].children[1].textContent))
+            const cd = airDate == 'Finished' ? 'Finished' : (airDate - Date.now()) 
+            const c = cards[i]
+            if(c.dataset.watch == 'true') {
+                return myShows.push({c, cd})
+            }
+            if(c.dataset.consider == 'true') {
+                return myShows.push({c, cd})
+            }
+            if(!Number(card.dataset.cd)) {
+                return notNumeric.push({c, cd})
+            }
+            sorted.push({c, cd})
+        }) 
+        sorted = sorted.sort(function (a, b) {
+            return Number(a.cd) - Number(b.cd)
+        }).concat(notNumeric)
+        considering.sort(function (a,b) {
+            return Number(a.cd) - Number(b.cd)
+        })
+        myshows = myShows.sort(function (a, b) {
+            return Number(a.cd) - Number(b.cd)
+        }).concat(considering)
+        sorted = myShows.concat(sorted)
     }
     timer.resetTimer()
     createCountdowns(sorted) //calcjs

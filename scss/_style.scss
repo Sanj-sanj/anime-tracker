@@ -37,7 +37,7 @@ li.f-choice:not(:last-child) {
     padding-right: 3rem;
 }
 li.f-choice a {
-    color: #8a8a8a
+    color: #4b4b4b
 }
 li.f-choice a:hover {
     color: black;
@@ -239,8 +239,14 @@ ol.anime-genre li:not(:last-child)::after {
     padding: 0;
 }
 .icon>.btn-outline-warning {
-    color:#a27c09
+    color:#8b6c10;
 }
+.icon>.btn-outline-success {
+    color:#0f852c;
+}   
+.icon>.btn-outline-info {
+    color: #327e89;
+}   
 
 .form-login {
     width: 100%;
