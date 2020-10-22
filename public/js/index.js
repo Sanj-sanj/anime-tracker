@@ -309,18 +309,14 @@ function sortBy(string) {
             }
             sorted.push({c, d, cd})
         })
-        // alert(noDate[0].c.children[0].textContent)
-        // alert(noDate[0].d)
-        console.log(sorted)
         sorted = sorted.sort(function (a, b) {
             return a.d - b.d
         }).concat(noDate)
-        // sorted = sorted.concat(noDate)
     }
     
     if(string == 'user-shows') {
         let myShows = []
-        const considering = []
+        let considering = []
         const notNumeric = []       //some return values are not numeral ex finished or releasing so check for those.
         scoreCard.forEach((card, i) => {
             const airDate = card.children[0].children[1].textContent == 'Finished' ? 'Finished' : (new Date(card.children[0].children[1].textContent))
@@ -330,7 +326,7 @@ function sortBy(string) {
                 return myShows.push({c, cd})
             }
             if(c.dataset.consider == 'true') {
-                return myShows.push({c, cd})
+                return considering.push({c, cd})
             }
             if(!Number(card.dataset.cd)) {
                 return notNumeric.push({c, cd})
@@ -345,8 +341,8 @@ function sortBy(string) {
         })
         myshows = myShows.sort(function (a, b) {
             return Number(a.cd) - Number(b.cd)
-        }).concat(considering)
-        sorted = myShows.concat(sorted)
+        })
+        sorted = myShows.concat(considering).concat(sorted)
     }
     timer.resetTimer()
     createCountdowns(sorted) //calcjs
