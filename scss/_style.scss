@@ -130,12 +130,19 @@ li.f-choice a:hover {
     line-height: initial;
     font-size: 1rem;
 }
+.ribbon {
+    display: flex;
+    width: 100%;
+    position: absolute;
+    top: -2px
+}
 .main-title{
     display: block;
     display: -webkit-box;
     text-overflow: ellipsis;
     overflow: hidden;
     -webkit-line-clamp: 2;
+    z-index: 1;
 }
 .anime-genre{
     padding: 0;
@@ -274,6 +281,14 @@ ol.anime-genre li:not(:last-child)::after {
     to {
         transform: rotateZ(360deg);
     }
+}
+
+.modal-body>ul {
+    padding: 0;
+    list-style: none;
+    margin: auto;
+    font-weight: 600;
+    color: #62636d;
 }
 // CSS for transition // 
 

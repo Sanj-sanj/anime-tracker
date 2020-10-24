@@ -1,6 +1,8 @@
-const siteStorage = localStorage
+
 const watching = watchState()
-const user = siteStorage.getItem('user')    
+
+const newEpisodes = newEpisode()
+const user = localStorage.getItem('user')    
 const spinner = document.querySelector('.spinner')
 const insertPoint = document.querySelector('.row-card-area')
 document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
@@ -18,10 +20,7 @@ function validateUser() {
         let b = now.getMinutes()
         b = (b * 60) + a 
         if(key && key2) {
-            if(key == 'override') {
-                return keyClean()
-            }
-            if(key >= b) {
+            if(key == 'override' || key >= b) { // was 2 if statements before
                 return keyClean()
             }
             localStorage.removeItem('prev')
@@ -99,7 +98,11 @@ function loopInnerItems(arr) {
         buildCard(information)  
     });
     sortShows()
+    updateShowRibbon()
     document.querySelectorAll('.main-title').forEach(el => el.style.webkitBoxOrient = 'vertical')
+    document.querySelectorAll('.card').forEach(card => newEpisodes.checkForNewEp(card))
+    newEpisodes.alertNewEpisode()
+
 }
 
 function sortShows() {
@@ -111,12 +114,44 @@ function sortShows() {
     setTitles(selection[1])
     document.querySelectorAll('.btn-id').forEach(el => el.addEventListener('click', showMore))
     document.querySelectorAll('.btn-watching').forEach(el => el.addEventListener('click', watching.updateWatchState))
-    document.querySelectorAll('.btn-consider').forEach(el => el.addEventListener('click', watching.updateWatchState))
-    updateWatchStyle()
+    document.querySelectorAll('.btn-consider').forEach(el => el.addEventListener('click', watching.updateWatchState))  
 }
 
-
-
+function newEpisode() {
+    const shows = JSON.parse(localStorage.getItem('watching')) || []
+    let announcing = []  
+    console.log(shows)
+    function checkForNewEp(elem) {
+        const data = elem.dataset
+        if(data.watch == 'true') {
+            let latest = elem.querySelector('.countdown').innerText
+            let found = shows.find(item => item.hasOwnProperty(data.id))
+            let title = elem.querySelector('.main-title').innerText
+            const lastSavedEp = found[data.id].slice(3)
+            const latestEp = latest.slice(3)
+            console.log({lastSavedEp, latestEp})
+            console.log(lastSavedEp >= latestEp)
+            if(found) {
+                lastSavedEp >= latestEp ? console.log('No new ep ' + title) : (announcing.push(title), storeLatestEp(latest, data.id))
+            }
+        }
+    }
+    function storeLatestEp(latest, key) {
+        shows.find(item => item.hasOwnProperty(key) ? item[key] = latest : false)
+        localStorage.setItem('watching', JSON.stringify(shows))
+    }
+    function alertNewEpisode() {
+        if (announcing.length == 0) return
+        let modalTitle = document.querySelector('.modal-title')
+        let modalBody = document.querySelector('.modal-body')
+        modalTitle.textContent = 'New episodes out!'
+        modalBody.innerHTML = `New episodes out for: <ul>${announcing.map(show => `<li>${show}</li>`).join(' ')}</ul>`
+        $('#myModal').modal('show')
+        
+        announcing = []
+    }
+    return { checkForNewEp, alertNewEpisode }
+}
 
 function buildCard(obj){
     const episodeDate = formatNextEpisodeDate(obj.nextEpisode, obj.status)
@@ -175,49 +210,87 @@ function buildCard(obj){
     insertPoint.insertAdjacentHTML('beforeend', template)
 }
 
-function updateWatchStyle() {
+function updateShowRibbon(parentData) {
+    const watching = `
+<div class="ribbon">
+<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-bookmark-check-fill" fill="#00b77a" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+</svg>
+</div>
+`
+const consider = `
+<div class="ribbon">
+    <svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-bookmark-star-fill" fill="#ffa811" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm4.16 4.1a.178.178 0 0 0-.32 0l-.634 1.285a.178.178 0 0 1-.134.098l-1.42.206a.178.178 0 0 0-.098.303L6.58 6.993c.042.041.061.1.051.158L6.39 8.565a.178.178 0 0 0 .258.187l1.27-.668a.178.178 0 0 1 .165 0l1.27.668a.178.178 0 0 0 .257-.187L9.368 7.15a.178.178 0 0 1 .05-.158l1.028-1.001a.178.178 0 0 0-.098-.303l-1.42-.206a.178.178 0 0 1-.134-.098L8.16 4.1z"/>
+    </svg>
+</div>
+`
+    if(parentData) {
+        // console.log(parentData.children[0].children)
+        if(parentData.children[0].children[0].className == 'ribbon') {
+            parentData.children[0].children[0].remove()
+        }
+        if(parentData.dataset.watch == 'true' ) {
+            return parentData.children[0].insertAdjacentHTML('afterbegin', watching)
+        }
+        else if(parentData.dataset.consider == 'true') {
+            return parentData.children[0].insertAdjacentHTML('afterbegin', consider)
+        }
+        return
+    }
     document.querySelectorAll('[data-watch="true"][data-consider="false"]').forEach(item => {
-        item.children[0].style.background = 'linear-gradient(180deg, #9dff4a, white)'
+        item.children[0].insertAdjacentHTML('afterbegin', watching)
     })
     document.querySelectorAll('[data-consider="true"][data-watch="false"]').forEach(item => {
-        item.children[0].style.background = 'linear-gradient(180deg, #fffd0d, white)'
+        item.children[0].insertAdjacentHTML('afterbegin', consider)
+
     })
     document.querySelectorAll('[data-watch="false"][data-consider="false"]').forEach(item => {
-        item.children[0].style.background = 'initial'
+        item.children[0].children[0].className == "ribbon" ? item.children[0].children[0].remove() : false
     })
 }
 
 function watchState() {
     let consider = localStorage.getItem('consider')
     consider == null ? consider = [] : consider = JSON.parse(consider)
-
     let watching = localStorage.getItem('watching')
     watching == null ? watching = [] : watching = JSON.parse(watching)
 
-    function updateWatchState(e) {
-        const parent = this.offsetParent.dataset
-        if(this.classList.contains('btn-watching') ) {
-            consider.includes(parent.id) ?
-                (consider.splice(consider.indexOf(parent.id)), parent.consider = false) : false
+    function updateWatchState() {
+        const parent = this.offsetParent
+        const parentData = parent.dataset
+        console.log(this)
+        const nextAiring = parent.querySelector(`.countdown`).childNodes[0].textContent
+        console.log(nextAiring)
 
-            watching.includes(parent.id) ? 
-                (watching.splice(watching.indexOf(parent.id), 1), parent.watch = false) :
-                (watching.push(parent.id), parent.watch = true)
+        if(this.classList.contains('btn-watching') ) {
+            consider.includes(parentData.id) ?
+            (consider.splice(consider.indexOf(parentData.id)), parentData.consider = false) : false
+                
+            const found = watching.filter(item => item.hasOwnProperty(parentData.id))
+            found.length > 0 ?
+            (watching.splice(watching.findIndex(item => item.hasOwnProperty(parentData.id)), 1), parentData.watch = false) :
+            (watching.push( {[parentData.id] : nextAiring } ), parentData.watch = true)
+
+            updateShowRibbon(this.offsetParent)
         }
         if(this.classList.contains('btn-consider')) {
-            watching.includes(parent.id) ?
-                (watching.splice(watching.indexOf(parent.id)), parent.watch = false) : false
-                //can add a wardning message before ^ to the user to validate wether they'll go from watching to considering 
-            consider.includes(parent.id) ?
-                (consider.splice(consider.indexOf(parent.id), 1), parent.consider = false) :
-                (consider.push(parent.id), parent.consider = true)
+            //updated to work with key/val pair
+            const found = watching.filter(item => item.hasOwnProperty(parentData.id))
+            found.length > 0 ?
+            (watching.splice(watching.findIndex(item => item.hasOwnProperty(parentData.id)), 1), parentData.watch = false) : false
+
+            consider.includes(parentData.id) ?
+                (consider.splice(consider.indexOf(parentData.id), 1), parentData.consider = false) :
+                (consider.push(parentData.id), parentData.consider = true)
+                updateShowRibbon(this.offsetParent)
         }
-        updateWatchStyle()
         saveWatching()
     }
 
     function getWatchStates(id) { 
-        if( watching.includes(String(id)) ){
+        const found = watching.filter(item => item.hasOwnProperty(`${id}`))
+        if( found && found.length > 0 ){
             return true
         }
         return false
@@ -231,6 +304,9 @@ function watchState() {
     function log(){
         console.log({watching})
     }
+    function saveEpisodeDate(obj) {
+        localStorage.setItem('next', )
+    }
     function saveWatching() {
         localStorage.setItem('watching', JSON.stringify(watching))
         localStorage.setItem('consider', JSON.stringify(consider))
@@ -241,10 +317,10 @@ function watchState() {
 function setTitles(string) {
     document.querySelectorAll('.anime-title').forEach((card, i) => {
         string == 'romaji' ? 
-            (card.children[0].innerText = card.dataset.rom,
-            card.children[0].title = card.dataset.rom) :
-            (card.children[0].innerText = card.dataset.en,
-            card.children[0].title = card.dataset.en)
+            (card.lastElementChild.innerText = card.dataset.rom,
+            card.lastElementChild.title = card.dataset.rom) :
+            (card.lastElementChild.innerText = card.dataset.en,
+            card.lastElementChild.title = card.dataset.en)
     })
 }
 

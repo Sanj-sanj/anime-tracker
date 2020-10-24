@@ -7,9 +7,13 @@ const path = require('path')
 
 
 server.get('/', (req, res) =>{
+server.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
+server.use('/js', (express.static(__dirname + '/node_modules/bootstrap/dist/js')))
+
     console.log(req.headers["user-agent"])
     res.sendFile(__dirname, 'index.html')
 })
+
 server.get('/show', (req, res) => {
     console.log(__dirname + '\\public')
     res.sendFile(__dirname + '/public/show.html')
