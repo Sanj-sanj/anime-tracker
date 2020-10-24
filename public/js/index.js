@@ -2,7 +2,6 @@
 const watching = watchState()
 
 const newEpisodes = newEpisode()
-const user = localStorage.getItem('user')    
 const spinner = document.querySelector('.spinner')
 const insertPoint = document.querySelector('.row-card-area')
 document.querySelectorAll('.change-season').forEach(btn => btn.addEventListener('click', changeSeason))
@@ -11,6 +10,13 @@ const selects = document.querySelectorAll('.custom-select')
     selects.forEach(el => el.addEventListener('change', sortShows))
 
 function validateUser() {
+    const user = localStorage.getItem('user')    
+    let ver  = localStorage.getItem('ver')
+
+    if(!ver) {
+        checkVer()
+        return validateUser()
+    }
     if(user) {
         console.log('welcome')
         const now = new Date()
@@ -32,7 +38,11 @@ function validateUser() {
         window.location.href = '/login/user.html'
         console.log('No user')
     }
+    function checkVer() {
+        localStorage.getItem('ver') ? (((localStorage.getItem('ver') * 10) + 1) / 10) : (localStorage.clear(), localStorage.setItem('ver', 1.1))
+    }
 }
+validateUser()
 
 function keyClean(){
     console.log('cleaned')
@@ -44,7 +54,6 @@ function keyClean(){
     changeFormatHeaderFromCache(temp.format)
     return loadInfo(temp.season, temp.format)
 }
-validateUser()
 
 function loadInfo(diffSeason, diffFormat) {
     //put this on the top navbar area
