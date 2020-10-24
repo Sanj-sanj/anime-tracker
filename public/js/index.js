@@ -1,6 +1,4 @@
-
 const watching = watchState()
-
 const newEpisodes = newEpisode()
 const spinner = document.querySelector('.spinner')
 const insertPoint = document.querySelector('.row-card-area')
@@ -12,7 +10,6 @@ const selects = document.querySelectorAll('.custom-select')
 function validateUser() {
     const user = localStorage.getItem('user')    
     let ver  = localStorage.getItem('ver')
-
     if(!ver) {
         checkVer()
         return validateUser()
@@ -56,9 +53,6 @@ function keyClean(){
 }
 
 function loadInfo(diffSeason, diffFormat) {
-    //put this on the top navbar area
-    // const newShows = document.querySelector('.anime-avail-bar')
-    // newShows.textContent = `Welcome ${user}!`
     const seasonHeader = document.querySelector('.anime-season-header')
     const season = diffSeason || checkSeason()
     const format = diffFormat || checkFormat()
@@ -85,7 +79,6 @@ function gatherAPI(season, format) {
 }
 function loopInnerItems(arr) {
     arr.media.forEach(element => {
-        // console.log(element.trailer ? element.trailer.site : `n/a for ${element.title.romaji}`)
         let information = {
             title: element.title,
             format: element.format || 'N/A',
@@ -129,7 +122,6 @@ function sortShows() {
 function newEpisode() {
     const shows = JSON.parse(localStorage.getItem('watching')) || []
     let announcing = []  
-    console.log(shows)
     function checkForNewEp(elem) {
         const data = elem.dataset
         if(data.watch == 'true') {
@@ -138,8 +130,6 @@ function newEpisode() {
             let title = elem.querySelector('.main-title').innerText
             const lastSavedEp = found[data.id].slice(3)
             const latestEp = latest.slice(3)
-            console.log({lastSavedEp, latestEp})
-            console.log(lastSavedEp >= latestEp)
             if(found) {
                 lastSavedEp >= latestEp ? console.log('No new ep ' + title) : (announcing.push(title), storeLatestEp(latest, data.id))
             }
@@ -235,7 +225,6 @@ const consider = `
 </div>
 `
     if(parentData) {
-        // console.log(parentData.children[0].children)
         if(parentData.children[0].children[0].className == 'ribbon') {
             parentData.children[0].children[0].remove()
         }
