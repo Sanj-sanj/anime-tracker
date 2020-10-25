@@ -75,32 +75,6 @@ server.get( '/main/:season/:format?' ,async (req, res) => {
     return info
 })
 
-
-server.get('/timers/:season/:format?', async(req, res) => {
-    let variables = {
-        // id: 116697,
-        isAdult: false,
-        page: 1,
-        perPage: 50,
-        format_in: ['TV', 'TV_SHORT'], //defaults to TV series
-        season: "",
-        seasonYear: ""
-    
-    };
-    module.exports = {variables}
-
-    let times
-    async function requestTime() {
-        await graphQL.getInfo(thisQuery.queryTimes)
-            .then(data => {
-                res.status(200).json(data)
-                return time = data
-            })
-    }
-    await requestTime()
-    return times
-})
-
 server.use(express.static(__dirname + '/public' ))
 
 server.listen(port, () => {

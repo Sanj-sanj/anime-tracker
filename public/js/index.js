@@ -257,9 +257,7 @@ function watchState() {
     function updateWatchState() {
         const parent = this.offsetParent
         const parentData = parent.dataset
-        console.log(this)
         const nextAiring = parent.querySelector(`.countdown`).childNodes[0].textContent
-        console.log(nextAiring)
 
         if(this.classList.contains('btn-watching') ) {
             consider.includes(parentData.id) ?
@@ -301,9 +299,6 @@ function watchState() {
     }
     function log(){
         console.log({watching})
-    }
-    function saveEpisodeDate(obj) {
-        localStorage.setItem('next', )
     }
     function saveWatching() {
         localStorage.setItem('watching', JSON.stringify(watching))
