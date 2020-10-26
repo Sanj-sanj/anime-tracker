@@ -319,6 +319,7 @@ ol.anime-genre li:not(:last-child)::after {
     .btn.pull-dropdown{
         display: initial;
     }
+
 }
 @media (max-width: 644px) {
     .season-selection {
@@ -329,11 +330,15 @@ ol.anime-genre li:not(:last-child)::after {
         width: 100%;
         justify-content: center;
     }
+
 }
 @media (max-width: 746px) {
     .input-group {
         width: 100%                  !important;
         margin-right: 1rem;
+    }
+    .contents {
+        height: auto;
     }
 }
 @media (min-width: 746px){
